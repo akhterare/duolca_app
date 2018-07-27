@@ -6,6 +6,7 @@ import adal
 import duolca_app.config 
 import uuid 
 import requests
+import flask
 from flask import Flask
 from os import environ
 # from applicationinsights.requests import WSGIApplication
