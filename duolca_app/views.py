@@ -16,6 +16,8 @@ def home():
         year=datetime.now().year,
     )
 
+    # Collects the user-specific access token 
+
 @app.route('/contact')
 def contact():
     """Renders the contact page."""
@@ -36,3 +38,4 @@ def about():
         year=datetime.now().year,
         message='Your application description page.'
     )
+
