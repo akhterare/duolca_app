@@ -11,17 +11,26 @@ from duolca_app import app
 from duolca_app import config
 import os 
 import json 
+import uuid
 
-# SETTING VALUES USED FOR ACCESS TOKEN ACQUISITION
-# PORT = 5000  # A flask app by default runs on PORT 5000
-# AUTHORITY_URL = config.AUTHORITY_HOST_URL + '/' + config.TENANT
-# REDIRECT_URI = 'http://localhost:{}/getAToken'.format(PORT)
-# TEMPLATE_AUTHZ_URL = ('https://login.microsoftonline.com/{}/oauth2/authorize?' +
-#                       'response_type=code&client_id={}&redirect_uri={}&' +
-#                       'state={}&resource={}')
+app.debug = True
+app.secret_key = 'development'
 
+PORT = 5000  # A flask app by default runs on PORT 5000
+AUTHORITY_URL = config.AUTHORITY_HOST_URL + '/' + config.TENANT
+REDIRECT_URI = 'http://localhost:{}/getAToken'.format(PORT)
+TEMPLATE_AUTHZ_URL = ('https://login.microsoftonline.com/{}/oauth2/authorize?' +
+                      'response_type=code&client_id={}&redirect_uri={}&' +
+                      'state={}&resource={}')
+                    
 @app.route('/')
 @app.route('/home')
+def main():
+    login_url = 'http://localhost:{}/login'.format(PORT)
+    resp = flask.Response(status=307)
+    resp.headers['location'] = login_url
+    return resp
+
 def home():
     """Renders the home page."""
     return render_template(
@@ -30,38 +39,37 @@ def home():
         year=datetime.now().year,
     )   
 
+@app.route("/login")
+def login():
+    auth_state = str(uuid.uuid4())
+    flask.session['state'] = auth_state
+    authorization_url = TEMPLATE_AUTHZ_URL.format(
+        config.TENANT,
+        config.CLIENT_ID,
+        REDIRECT_URI,
+        auth_state,
+        config.RESOURCE)
+    resp = flask.Response(status=307)
+    resp.headers['location'] = authorization_url
+    return resp
+
 @app.route("/getAToken", methods=['GET', 'POST'])
 def auth():
-    URL = "https://duolcaapp.azurewebsites.net/.auth/me"
-    r = requests.get(URL)
-    right_header = r.headers
-
-    tenant = "5d471751-9675-428d-917b-70f44f9630b0"
-    authority_url = 'https://login.microsoftonline.com/' + tenant
+    code = flask.request.args['code']
+    state = flask.request.args['state']
+   
     client_id = 'fb20d6fe-ce09-449a-b096-90f229943863'
     client_secret = '9bPMwvy7HztrwVkkCR08BOPMbPUb5Ze8MqMVZOwGTMQ='
-    resource = 'https://management.azure.com'
-
-    context = adal.AuthenticationContext(authority_url)
-    token = context.acquire_token_with_client_credentials(resource, client_id, client_secret)
-    access_token = token['accessToken']
-
-    # access_token = flask.request.headers["X-MS-TOKEN-AAD-ACCESS-TOKEN"]
-    # code = flask.request.args['code']
-    # state = flask.request.args['state']
-    # if state != Flask.flask.session['state']:
-    #     raise ValueError("State does not match")
-    # auth_context = adal.AuthenticationContext(AUTHORITY_URL)
-    # token_response = auth_context.acquire_token_with_authorization_code(code, REDIRECT_URI, config.RESOURCE,
-    #                                                                     config.CLIENT_ID, config.CLIENT_SECRET)
-    # # # It is recommended to save this to a database when using a production app.
-    # flask.session['access_token'] = token_response['accessToken']
+    resource = 'https://graph.microsoft.com'
+    
+    context = adal.AuthenticationContext(AUTHORITY_URL)
+    token = context.acquire_token_with_authorization_code(code, REDIRECT_URI, resource, client_id, client_secret)
 
     return render_template(
         'auth.html', 
         title='Authorization',
-        message='Your Token Was Successfully Retrieved!',
-        access_token=access_token
+        message='Your Token ONLY Was Successfully Retrieved!',
+        access_token=token
     )
 
 @app.route('/contact')
