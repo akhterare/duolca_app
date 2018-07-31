@@ -22,6 +22,7 @@ REDIRECT_URI = 'http://localhost:{}/getAToken'.format(PORT)
 TEMPLATE_AUTHZ_URL = ('https://login.microsoftonline.com/{}/oauth2/authorize?' +
                       'response_type=code&client_id={}&redirect_uri={}&' +
                       'state={}&resource={}')
+TOKEN = ""
                     
 @app.route('/')
 @app.route('/home')
@@ -63,13 +64,30 @@ def auth():
     resource = 'https://graph.microsoft.com'
     
     context = adal.AuthenticationContext(AUTHORITY_URL)
-    token = context.acquire_token_with_authorization_code(code, REDIRECT_URI, resource, client_id, client_secret)
+    TOKEN = context.acquire_token_with_authorization_code(code, REDIRECT_URI, resource, client_id, client_secret)
+    flask.session['access_token'] = TOKEN['accessToken']
+
+    return flask.redirect('/graphcall')
+   
+@app.route('/graphcall')
+def graphcall():
+    if 'access_token' not in flask.session:
+        return flask.redirect(flask.url_for('login'))
+
+    endpoint = config.RESOURCE + '/' + config.API_VERSION + '/me/'
+    http_headers = {'Authorization': flask.session.get('access_token'),
+                    'User-Agent': 'duolca_app',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'client-request-id': str(uuid.uuid4())}
+    graph_data = requests.get(endpoint, headers=http_headers, stream=False).json()
 
     return render_template(
         'auth.html', 
         title='Authorization',
         message='Your Token ONLY Was Successfully Retrieved!',
-        access_token=token
+        access_token=TOKEN, 
+        graph_data=graph_data
     )
 
 @app.route('/contact')
