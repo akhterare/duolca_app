@@ -2,32 +2,39 @@
 
 {% block content %}
 
+<h3>Welcome, {{ username }}!</h3>
+
 <div class="main-container">
     <div class="create-vm-form">
-        <form>
+        <form method='POST'>
             <div class="form-group">
-              <label for="vm-name">Course Name</label>
-              <input type="email" class="form-control" id="vm-name" placeholder="Enter name of your course">
+              <label for="vm_name">Course Name</label>
+              <input type="text" class="form-control" id="vm_name" name="vm_name" placeholder="Enter name of your course">
             </div>
+
             <div class="form-group">
                 <div class="input-group-prepend">
-                  <label class="input-group-text" for="inputGroupSelect01">Resource Groups</label>
+                  <label class="input-group-text" for="resource_group" id="resource_group">Resource Groups</label>
                 </div>
-                <select class="custom-select" id="inputGroupSelect01">
+                <select class="custom-select" id="resource_group" name=resource_group>
                   <option selected>Choose...</option>
-                  <option value="1">edulab-dev-infra005</option>
+                  <option value="edulab-dev-infra005" name=resource_group>edulab-dev-infra005</option>
                 </select>
               </div>
+
             <div class="form-group">
                 <div class="input-group-prepend">
-                  <label class="input-group-text" for="inputGroupSelect01">Locations</label>
+                  <label class="input-group-text" for="location">Locations</label>
                 </div>
-                <select class="custom-select" id="inputGroupSelect01">
+                <select class="custom-select" id="location" name=location>
                   <option selected>Choose...</option>
-                  <option value="1">East US</option>
+                  <option value="East US" name=location>East US</option>
                 </select>
             </div>  
-            <button type="submit" class="btn btn-primary">Submit</button>
+
+            <input type="submit" value="Deploy VM">
+            <!-- <a href="{{ url_for('manage') }}" type="submit" class="btn btn-primary">Submit</a> -->
+            <!-- <button type="submit" class="btn btn-primary">Submit</button> -->
           </form>
     </div>  
 </div>

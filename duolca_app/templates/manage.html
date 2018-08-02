@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h2>{{ title }}</h2>
+<h3>Hi {{ username }}, {{ message }}</h3>
+
+<h3><b>User Data</h3>
+<p>Your course is {{ vm_name }}</p>
+<p>Your resource group is {{ resource_group }}</p>
+<p>Your location is {{ location }}</p>
+
+{% endblock %}

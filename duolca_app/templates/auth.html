@@ -3,19 +3,28 @@
 {% block content %}
 
 <h2>{{ title }}</h2>
-<h3>{{ message }}</h3>
+<h3>Hi {{ username }}, {{ message }}</h3>
 
 <p>Let's just see if this works....</p>
 <p>Your access token is: {{ access_token }}</p>
 
 <h3><b>User Data</h3>
 <table>
-{% for key, value in graph_data.items() %}
-   <tr>
+<!-- {% for key, value in graph_data.items() %} -->
+   <!-- <tr>
         <th> {{ key }} </th>
         <td> {{ value }} </td>
-   </tr>
+   </tr> 
+
+{% endfor %}-->
+
+{% for key, value in graph_data.items() %}
+    <tr>
+        <th> {{ key }} </th>
+        <td> {{ value }} </td>
+    </tr>
 {% endfor %}
+
 </table>
 
 {% endblock %}

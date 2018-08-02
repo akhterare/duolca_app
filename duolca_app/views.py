@@ -3,42 +3,91 @@ Routes and views for the flask application.
 """
 
 from datetime import datetime
-from flask import render_template, Flask, Response, request, session
+from flask import render_template, Flask, Response, request, session, redirect
 import flask 
 import requests
 import adal
-from duolca_app import app
-from duolca_app import config
 import os 
 import json 
-import uuid
+import uuid 
+
+from duolca_app import app
+from duolca_app import config
+from duolca_app.db import get_db
 
 app.debug = True
 app.secret_key = 'development'
 
 PORT = 5000  # A flask app by default runs on PORT 5000
 AUTHORITY_URL = config.AUTHORITY_HOST_URL + '/' + config.TENANT
-REDIRECT_URI = 'http://localhost:{}/getAToken'.format(PORT)
+# REDIRECT_URI = 'http://localhost:{}/getAToken'.format(PORT)
+REDIRECT_URI = 'https://duolcaapp.azurewebsites.net/getAToken'
 TEMPLATE_AUTHZ_URL = ('https://login.microsoftonline.com/{}/oauth2/authorize?' +
                       'response_type=code&client_id={}&redirect_uri={}&' +
                       'state={}&resource={}')
 TOKEN = ""
-                    
-@app.route('/')
-@app.route('/home')
-def main():
-    login_url = 'http://localhost:{}/login'.format(PORT)
-    resp = flask.Response(status=307)
-    resp.headers['location'] = login_url
-    return resp
+USERNAME = ""
+# USERNAME_NEW="",
+# VM_NAME="default",
+# RESOURCE_GROUP="default",
+# LOCATION="default"
 
+@app.route('/home', methods=('GET', 'POST'))
 def home():
+    global USERNAME_NEW
+    global VM_NAME 
+    global RESOURCE_GROUP
+    global LOCATION
+
+    if request.method == 'POST':
+        USERNAME_NEW = 'TEST'
+        VM_NAME = request.form['vm_name']
+        RESOURCE_GROUP = request.form['resource_group']
+        LOCATION = request.form['location']
+        # db = get_db()
+
+        # db.execute(
+        #         'INSERT INTO course (username, vm_name, resource_group, location) VALUES (?, ?, ?, ?)',
+        #         (USERNAME_NEW, VM_NAME, RESOURCE_GROUP, LOCATION)  
+        # )
+        # db.commit()
+
+        # return redirect(url_for('manage'))
+        return flask.redirect('/manage')
+
     """Renders the home page."""
     return render_template(
         'index.html',
         title='Home Page',
         year=datetime.now().year,
+        username=USERNAME
     )   
+
+@app.route('/manage', methods=('GET', 'POST'))
+def manage():
+        # db.execute(
+        #         'INSERT INTO course (username, vm_name, resource_group, location) VALUES (?, ?, ?, ?)',
+        #         (username, vm_name, resource_group, location)
+        #     )
+        #     db.commit()
+
+        return render_template(
+            'manage.html', 
+            title='Management',
+            message='Your VM Was Created and Logged!',
+            username=USERNAME_NEW,
+            vm_name=VM_NAME,
+            resource_group=RESOURCE_GROUP,
+            location=LOCATION
+        )
+
+@app.route('/')
+def main():
+    # login_url = 'http://localhost:{}/login'.format(PORT)
+    login_url = 'https://duolcaapp.azurewebsites.net/login'
+    resp = flask.Response(status=307) 
+    resp.headers['location'] = login_url
+    return resp
 
 @app.route("/login")
 def login():
@@ -81,13 +130,15 @@ def graphcall():
                     'Content-Type': 'application/json',
                     'client-request-id': str(uuid.uuid4())}
     graph_data = requests.get(endpoint, headers=http_headers, stream=False).json()
+    USERNAME = graph_data['givenName']
 
     return render_template(
         'auth.html', 
         title='Authorization',
-        message='Your Token ONLY Was Successfully Retrieved!',
+        message='We Have Your Auth Info!',
         access_token=TOKEN, 
-        graph_data=graph_data
+        graph_data=graph_data,
+        username=USERNAME
     )
 
 @app.route('/contact')
@@ -98,7 +149,8 @@ def contact():
         title='Contact Us',
         #year=datetime.now().year,
         year=datetime.now().year,
-        message='Your contact page.'
+        message='Your contact page.',
+        username=USERNAME
     )
 
 @app.route('/about')
@@ -108,6 +160,7 @@ def about():
         'about.html',
         title='About',
         year=datetime.now().year,
-        message='Duolca App Documentation.'
+        message='Duolca App Documentation.',
+        username=USERNAME
     )
 

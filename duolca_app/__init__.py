@@ -12,8 +12,12 @@ from os import environ
 # from applicationinsights.requests import WSGIApplication
 app = Flask(__name__)
 # app.wsgi_app = WSGIApplication(environ.get('APPINSIGHTS_INSTRUMENTATIONKEY'), app.wsgi_app)
-import duolca_app.views
+app.config.from_pyfile('config.py')
 
+from . import db
+db.init_app(app)
+
+import duolca_app.views
 
 
 
