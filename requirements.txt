@@ -1,4 +1,5 @@
 Flask<1
-applicationinsights
+# applicationinsights
 adal
 requests
+simpleazure

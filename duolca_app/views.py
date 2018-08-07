@@ -10,6 +10,8 @@ import adal
 import os 
 import json 
 import uuid 
+from simpleazure import SimpleAzure
+saz = SimpleAzure()
 
 from duolca_app import app
 from duolca_app import config
@@ -20,7 +22,6 @@ app.secret_key = 'development'
 
 PORT = 5000  # A flask app by default runs on PORT 5000
 AUTHORITY_URL = config.AUTHORITY_HOST_URL + '/' + config.TENANT
-# REDIRECT_URI = 'http://localhost:{}/getAToken'.format(PORT)
 REDIRECT_URI = 'https://duolcaapp.azurewebsites.net/getAToken'
 TEMPLATE_AUTHZ_URL = ('https://login.microsoftonline.com/{}/oauth2/authorize?' +
                       'response_type=code&client_id={}&redirect_uri={}&' +
@@ -83,7 +84,6 @@ def manage():
 
 @app.route('/')
 def main():
-    # login_url = 'http://localhost:{}/login'.format(PORT)
     login_url = 'https://duolcaapp.azurewebsites.net/login'
     resp = flask.Response(status=307) 
     resp.headers['location'] = login_url
@@ -98,7 +98,7 @@ def login():
         config.CLIENT_ID,
         REDIRECT_URI,
         auth_state,
-        config.RESOURCE)
+        config.MANAGE_RESOURCE)
     resp = flask.Response(status=307)
     resp.headers['location'] = authorization_url
     return resp
@@ -110,12 +110,27 @@ def auth():
    
     client_id = 'fb20d6fe-ce09-449a-b096-90f229943863'
     client_secret = '9bPMwvy7HztrwVkkCR08BOPMbPUb5Ze8MqMVZOwGTMQ='
-    resource = 'https://graph.microsoft.com'
     
+    # # GET THE MICROSOFT GRAPH ACCESS TOKEN
+    # resource = 'https://graph.microsoft.com'
+    # context = adal.AuthenticationContext(AUTHORITY_URL)
+    # TOKEN = context.acquire_token_with_authorization_code(code, REDIRECT_URI, resource, client_id, client_secret)
+    # flask.session['auth_access_token'] = TOKEN['accessToken']
+
+     # GET THE AZURE RESOURCE MANAGEMENT ACCESS TOKEN
+    resource = 'https://management.azure.com'
     context = adal.AuthenticationContext(AUTHORITY_URL)
     TOKEN = context.acquire_token_with_authorization_code(code, REDIRECT_URI, resource, client_id, client_secret)
     flask.session['access_token'] = TOKEN['accessToken']
 
+    return render_template(
+        'auth.html', 
+        title='Authorization',
+        message='We Have Your Auth Info!',
+        access_token=TOKEN, 
+        # graph_data=graph_data,
+        # username=USERNAME
+    )
     return flask.redirect('/graphcall')
    
 @app.route('/graphcall')
@@ -123,7 +138,18 @@ def graphcall():
     if 'access_token' not in flask.session:
         return flask.redirect(flask.url_for('login'))
 
-    endpoint = config.RESOURCE + '/' + config.API_VERSION + '/me/'
+    # # MAKE A CALL TO THE GRAPH API TO GET USER INFO 
+    # endpoint = config.AUTH_RESOURCE + '/' + config.API_VERSION + '/me/'
+    # http_headers = {'Authorization': flask.session.get('auth_access_token'),
+    #                 'User-Agent': 'duolca_app',
+    #                 'Accept': 'application/json',
+    #                 'Content-Type': 'application/json',
+    #                 'client-request-id': str(uuid.uuid4())}
+    # graph_data = requests.get(endpoint, headers=http_headers, stream=False).json()
+    # USERNAME = graph_data['givenName']
+
+    # MAKE A CALL TO THE MANAGEMENT API TO MANAGE AZURE RESOURCES
+    endpoint = config.MANAGE_RESOURCE + '/subscription/' + config.SUBSCRIPTION_ID + '/resourcegroups/' + 'edulab_dev_infra005' config.API_VERSION + '/me/'
     http_headers = {'Authorization': flask.session.get('access_token'),
                     'User-Agent': 'duolca_app',
                     'Accept': 'application/json',
