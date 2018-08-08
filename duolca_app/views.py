@@ -10,8 +10,9 @@ import adal
 import os 
 import json 
 import uuid 
-from simpleazure import SimpleAzure
-saz = SimpleAzure()
+import os.path
+from duolca_app.deployer import Deployer
+from msrestazure.azure_active_directory import AdalAuthentication
 
 from duolca_app import app
 from duolca_app import config
@@ -27,6 +28,7 @@ TEMPLATE_AUTHZ_URL = ('https://login.microsoftonline.com/{}/oauth2/authorize?' +
                       'response_type=code&client_id={}&redirect_uri={}&' +
                       'state={}&resource={}')
 TOKEN = ""
+CREDENTIALS = ""
 USERNAME = ""
 # USERNAME_NEW="",
 # VM_NAME="default",
@@ -121,24 +123,75 @@ def auth():
     resource = 'https://management.azure.com'
     context = adal.AuthenticationContext(AUTHORITY_URL)
     TOKEN = context.acquire_token_with_authorization_code(code, REDIRECT_URI, resource, client_id, client_secret)
+    CREDENTIALS = AdalAuthentication(
+        context.acquire_token_with_authorization_code(code, REDIRECT_URI, resource, client_id, client_secret),
+        config.MANAGE_RESOURCE,
+        config.CLIENT_ID,
+        config.CLIENT_SECRET
+    )
     flask.session['access_token'] = TOKEN['accessToken']
 
-    return render_template(
-        'auth.html', 
-        title='Authorization',
-        message='We Have Your Auth Info!',
-        access_token=TOKEN, 
-        # graph_data=graph_data,
-        # username=USERNAME
-    )
-    return flask.redirect('/graphcall')
-   
-@app.route('/graphcall')
-def graphcall():
+    # return render_template(
+    #     'auth.html', 
+    #     title='Authorization',
+    #     message='We Have Your Auth Info!',
+    #     access_token=TOKEN, 
+    #     credentials=CREDENTIALS
+    #     # graph_data=graph_data,
+    #     # username=USERNAME
+    # )
+    return flask.redirect('/DeployTemplate')
+
+@app.route('/DeployTemplate')
+def DeployTemplate():
     if 'access_token' not in flask.session:
         return flask.redirect(flask.url_for('login'))
 
-    # # MAKE A CALL TO THE GRAPH API TO GET USER INFO 
+# This script expects that the following environment vars are set:
+#
+# config.TENANT: with your Azure Active Directory tenant id or domain
+# config.CLIENT_ID: with your Azure Active Directory Application Client ID
+# config.CLIENT_SECRET: with your Azure Active Directory Application Secret
+
+    my_subscription_id = config.SUBSCRIPTION_ID   # your Azure Subscription Id
+    my_resource_group = 'edulab-dev-005'          # the resource group for deployment
+    # my_pub_ssh_key_path = os.path.expanduser('~/.ssh/id_rsa.pub')   # the path to your rsa public key file
+
+# # msg = "\nInitializing the Deployer class with subscription id: {}, resource group: {}" \
+# #     "\nand public key located at: {}...\n\n"
+# # msg = msg.format(my_subscription_id, my_resource_group, my_pub_ssh_key_path)
+# # print(msg)
+
+# Initialize the deployer class
+    deployer = Deployer(my_subscription_id, my_resource_group)
+    my_deployment = deployer.deploy()
+
+    return render_template(
+        'manage.html', 
+        title='Management',
+        message='Your VM Was Successfully Deployed!',
+        vm_name='input test vm', 
+        resource_group=deployer.resource_group,
+        location='East US',
+        connection=deployer.dns_label_prefix
+        # graph_data=graph_data,
+        # username=USERNAME
+    )
+# print("Beginning the deployment... \n\n")
+# # Deploy the template
+# my_deployment = deployer.deploy()
+
+# print("Done deploying!! \n\nYou can connect via: `ssh azureSample@{}.eastus.cloudapp.azure.com`".format(deployer.dns_label_prefix))
+
+# Destroy the resource group which contains the deployment
+# deployer.destroy()
+    
+# @app.route('/graphcall')
+# def graphcall():
+#     if 'access_token' not in flask.session:
+#         return flask.redirect(flask.url_for('login'))
+
+#     # # MAKE A CALL TO THE GRAPH API TO GET USER INFO 
     # endpoint = config.AUTH_RESOURCE + '/' + config.API_VERSION + '/me/'
     # http_headers = {'Authorization': flask.session.get('auth_access_token'),
     #                 'User-Agent': 'duolca_app',
@@ -149,23 +202,25 @@ def graphcall():
     # USERNAME = graph_data['givenName']
 
     # MAKE A CALL TO THE MANAGEMENT API TO MANAGE AZURE RESOURCES
-    endpoint = config.MANAGE_RESOURCE + '/subscription/' + config.SUBSCRIPTION_ID + '/resourcegroups/' + 'edulab_dev_infra005' config.API_VERSION + '/me/'
-    http_headers = {'Authorization': flask.session.get('access_token'),
-                    'User-Agent': 'duolca_app',
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'client-request-id': str(uuid.uuid4())}
-    graph_data = requests.get(endpoint, headers=http_headers, stream=False).json()
-    USERNAME = graph_data['givenName']
 
-    return render_template(
-        'auth.html', 
-        title='Authorization',
-        message='We Have Your Auth Info!',
-        access_token=TOKEN, 
-        graph_data=graph_data,
-        username=USERNAME
-    )
+
+    # endpoint = config.MANAGE_RESOURCE + '/subscription/' + config.SUBSCRIPTION_ID + '/resourcegroups/edulab_dev_infra005/providers/Microsoft.Resources/deployments/TestDeploy?' + config.API_VERSION 
+    # http_headers = {'Authorization': flask.session.get('access_token'),
+    #                 'User-Agent': 'duolca_app',
+    #                 'Accept': 'application/json',
+    #                 'Content-Type': 'application/json',
+    #                 'client-request-id': str(uuid.uuid4())}
+    #  = requests.put(endpoint, headers=http_headers, stream=False).json()
+    # # USERNAME = graph_data['givenName']
+
+    # return render_template(
+    #     'auth.html', 
+    #     title='Authorization',
+    #     message='We Have Your Auth Info!',
+    #     access_token=TOKEN, 
+    #     graph_data=graph_data,
+    #     username=USERNAME
+    # )
 
 @app.route('/contact')
 def contact():

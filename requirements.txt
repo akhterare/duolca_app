@@ -2,4 +2,6 @@ Flask<1
 # applicationinsights
 adal
 requests
-simpleazure
+azure-mgmt-resource==0.30.0rc5
+haikunator
+msrestazure
