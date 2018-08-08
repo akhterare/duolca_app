@@ -129,8 +129,27 @@ def auth():
         config.CLIENT_ID,
         config.CLIENT_SECRET
     )
+    
     flask.session['access_token'] = TOKEN['accessToken']
 
+    my_subscription_id = config.SUBSCRIPTION_ID   # your Azure Subscription Id
+    my_resource_group = 'edulab-dev-005'          # the resource group for deployment
+    
+    if 'access_token' in flask.session:
+        deployer = Deployer(my_subscription_id, my_resource_group, CREDENTIALS)
+        my_deployment = deployer.deploy()
+    
+        render_template(
+            'manage.html', 
+            title='Management',
+            message='Your VM Was Successfully Deployed!',
+            vm_name='input test vm', 
+            resource_group=deployer.resource_group,
+            location='East US',
+            connection=deployer.dns_label_prefix
+        # graph_data=graph_data,
+        # username=USERNAME
+    )
     # return render_template(
     #     'auth.html', 
     #     title='Authorization',
@@ -140,7 +159,7 @@ def auth():
     #     # graph_data=graph_data,
     #     # username=USERNAME
     # )
-    return flask.redirect('/DeployTemplate')
+  #  return flask.redirect('/DeployTemplate')
 
 @app.route('/DeployTemplate')
 def DeployTemplate():
@@ -152,10 +171,7 @@ def DeployTemplate():
 # config.TENANT: with your Azure Active Directory tenant id or domain
 # config.CLIENT_ID: with your Azure Active Directory Application Client ID
 # config.CLIENT_SECRET: with your Azure Active Directory Application Secret
-
-    my_subscription_id = config.SUBSCRIPTION_ID   # your Azure Subscription Id
-    my_resource_group = 'edulab-dev-005'          # the resource group for deployment
-    # my_pub_ssh_key_path = os.path.expanduser('~/.ssh/id_rsa.pub')   # the path to your rsa public key file
+    
 
 # # msg = "\nInitializing the Deployer class with subscription id: {}, resource group: {}" \
 # #     "\nand public key located at: {}...\n\n"
@@ -163,20 +179,9 @@ def DeployTemplate():
 # # print(msg)
 
 # Initialize the deployer class
-    deployer = Deployer(my_subscription_id, my_resource_group)
-    my_deployment = deployer.deploy()
+    
 
-    return render_template(
-        'manage.html', 
-        title='Management',
-        message='Your VM Was Successfully Deployed!',
-        vm_name='input test vm', 
-        resource_group=deployer.resource_group,
-        location='East US',
-        connection=deployer.dns_label_prefix
-        # graph_data=graph_data,
-        # username=USERNAME
-    )
+    
 # print("Beginning the deployment... \n\n")
 # # Deploy the template
 # my_deployment = deployer.deploy()

@@ -18,10 +18,11 @@ class Deployer(object):
     name_generator = Haikunator()
 
 # INITALIZE THE CLASS WITH THE SUBSCRIPTION ID AND RESOURCE GROUP INPUTTED
-    def __init__(self, subscription_id, resource_group):
+    def __init__(self, subscription_id, resource_group, credentials):
         self.subscription_id = subscription_id
         self.resource_group = resource_group
-        self.dns_label_prefix = self.name_generator.haikunate()
+        # self.dns_label_prefix = self.name_generator.haikunate()
+        self.credentials = credentials
 
         # pub_ssh_key_path = os.path.expanduser(pub_ssh_key_path)
         # # Will raise if file not exists or not enough permission
@@ -34,29 +35,27 @@ class Deployer(object):
         #     config.CLIENT_ID,
         #     config.CLIENT_SECRET
         # )
-        self.credentials = views.CREDENTIALS
         self.client = ResourceManagementClient(self.credentials, self.subscription_id)
 
     def deploy(self):
     # Deploy your template to your desired resource group 
 
-        self.client.resource_groups.create_or_update(
-            self.resource_group,
-            {
-                'location':'westeurope'
-            }
-        )
+        # self.client.resource_groups.create_or_update(
+        #     self.resource_group,
+        #     {
+        #         'location':'westeurope'
+        #     }
+        # )
 
         template_path = os.path.join(os.path.dirname(__file__), 'templates', 'template.json')
         with open(template_path, 'r') as template_file_fd:
             template = json.load(template_file_fd)
 
         parameters = {
-            # 'sshKeyData': self.pub_ssh_key,
             'vmName': 'test-vm',
-            'dnsLabelPrefix': self.dns_label_prefix
+            # 'dnsLabelPrefix': self.dns_label_prefix
         }
-        parameters = {k: {'value': v} for k, v in parameters.items()}
+      #  parameters = {k: {'value': v} for k, v in parameters.items()}
 
         deployment_properties = {
             'mode': DeploymentMode.incremental,
@@ -67,6 +66,7 @@ class Deployer(object):
         deployment_async_operation = self.client.deployments.create_or_update(
             self.resource_group,
             'test-vm',
-            deployment_properties
+          #  deployment_properties
         )
+        # result = deployment_async_operation.result()
         deployment_async_operation.wait()
