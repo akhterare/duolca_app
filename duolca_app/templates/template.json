@@ -18,7 +18,7 @@
       },
       "dnsLabelPrefix": {
         "type": "string",
-        "defaultValue": "duolcaapp",
+        "defaultValue": "duolcasamp",
         "metadata": {
           "description": "Unique DNS Name for the Public IP used to access the Virtual Machine."
         }
@@ -66,31 +66,31 @@
       },
       "subnetName": {
         "type": "string",
-        "defaultValue": "azsample-subnet",
+        "defaultValue": "duolcasamp-subnet",
         "metadata": {
           "description": "Name of the subnet"
         }
       },
       "virtualNetworkName": {
         "type": "string",
-        "defaultValue": "azsampleVNET",
+        "defaultValue": "duolcasampVNET",
         "metadata": {
           "description": "Name of the virtual network"
         }
       }
     },
     "variables": {
-      "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'azsample')]",
+      "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'duolcasamp')]",
       "location": "[resourceGroup().location]",
       "osDiskName": "osDisk1",
       "addressPrefix": "10.0.0.0/16",
       "subnetPrefix": "10.0.0.0/24",
-      "vmStorageAccountContainerName": "azsample-vhds",
-      "nicName": "[concat(parameters('vmName'), '-azsampleNIC')]",
-      "publicIPAddressName": "[concat(parameters('vmName'), '-azsamplePublicIP')]",
+      "vmStorageAccountContainerName": "duolcasamp-vhds",
+      "nicName": "[concat(parameters('vmName'), '-duolcasampNIC')]",
+      "publicIPAddressName": "[concat(parameters('vmName'), '-duolcasampPublicIP')]",
       "publicIPAddressType": "Dynamic",
       "storageAccountType": "Standard_LRS",
-      "networkSecurityGroupName": "[concat(parameters('vmName'), '-azsampleNSG')]",
+      "networkSecurityGroupName": "[concat(parameters('vmName'), '-duolcasampNSG')]",
       "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
       "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnetName'))]",
       "apiVersion": "2015-06-15"

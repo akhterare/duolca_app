@@ -28,7 +28,8 @@ TEMPLATE_AUTHZ_URL = ('https://login.microsoftonline.com/{}/oauth2/authorize?' +
                       'response_type=code&client_id={}&redirect_uri={}&' +
                       'state={}&resource={}')
 TOKEN = ""
-CREDENTIALS = ""
+AUTH_TOKEN = ""
+# CREDENTIALS = ""
 USERNAME = ""
 # USERNAME_NEW="",
 # VM_NAME="default",
@@ -56,7 +57,7 @@ def home():
         # db.commit()
 
         # return redirect(url_for('manage'))
-        return flask.redirect('/manage')
+        return flask.redirect('/DeployTemplate')
 
     """Renders the home page."""
     return render_template(
@@ -107,22 +108,22 @@ def login():
 
 @app.route("/getAToken", methods=['GET', 'POST'])
 def auth():
+    global CREDENTIALS
     code = flask.request.args['code']
     state = flask.request.args['state']
    
     client_id = 'fb20d6fe-ce09-449a-b096-90f229943863'
     client_secret = '9bPMwvy7HztrwVkkCR08BOPMbPUb5Ze8MqMVZOwGTMQ='
     
-    # # GET THE MICROSOFT GRAPH ACCESS TOKEN
-    # resource = 'https://graph.microsoft.com'
-    # context = adal.AuthenticationContext(AUTHORITY_URL)
-    # TOKEN = context.acquire_token_with_authorization_code(code, REDIRECT_URI, resource, client_id, client_secret)
-    # flask.session['auth_access_token'] = TOKEN['accessToken']
+    # GET THE MICROSOFT GRAPH ACCESS TOKEN
+    resource = 'https://graph.microsoft.com'
+    context = adal.AuthenticationContext(AUTHORITY_URL)
+    AUTH_TOKEN = context.acquire_token_with_authorization_code(code, REDIRECT_URI, resource, client_id, client_secret)
+    flask.session['auth_access_token'] = AUTH_TOKEN['accessToken']
 
-     # GET THE AZURE RESOURCE MANAGEMENT ACCESS TOKEN
+    # GET THE AZURE RESOURCE MANAGEMENT ACCESS TOKEN
     resource = 'https://management.azure.com'
     context = adal.AuthenticationContext(AUTHORITY_URL)
-
     TOKEN = context.acquire_token_with_authorization_code(code, REDIRECT_URI, resource, client_id, client_secret)
 
     CREDENTIALS = AdalAuthentication(
@@ -134,23 +135,25 @@ def auth():
     
     flask.session['access_token'] = TOKEN['accessToken']
 
-    my_subscription_id = config.SUBSCRIPTION_ID   # your Azure Subscription Id
-    my_resource_group = 'edulab-dev-005'          # the resource group for deployment
-    
-    if 'access_token' in flask.session:
-        deployer = Deployer(my_subscription_id, my_resource_group, CREDENTIALS, 'vm-two')
-        my_deployment = deployer.deploy()
-    
-        return render_template(
-            'manage.html', 
-            title='Management',
-            message='Your VM Was Successfully Deployed!',
-            vm_name='input test vm', 
-            resource_group=deployer.resource_group,
-            location='East US',
-            credentials=CREDENTIALS
+    return flask.redirect('/home')
 
-    )
+    # my_subscription_id = config.SUBSCRIPTION_ID   # your Azure Subscription Id
+    # my_resource_group = 'edulab-dev-005'          # the resource group for deployment
+    
+    # if 'access_token' in flask.session:
+    #     deployer = Deployer(my_subscription_id, my_resource_group, CREDENTIALS, 'vm-two')
+    #     my_deployment = deployer.deploy()
+    
+    #     return render_template(
+    #         'manage.html', 
+    #         title='Management',
+    #         message='Your VM Was Successfully Deployed!',
+    #         vm_name='input test vm', 
+    #         resource_group=deployer.resource_group,
+    #         location='East US',
+    #         credentials=CREDENTIALS
+
+    # )
     # return render_template(
     #     'auth.html', 
     #     title='Authorization',
@@ -160,14 +163,28 @@ def auth():
     #     # graph_data=graph_data,
     #     # username=USERNAME
     # )
-  #  return flask.redirect('/DeployTemplate')
 
 @app.route('/DeployTemplate')
 def DeployTemplate():
     if 'access_token' not in flask.session:
         return flask.redirect(flask.url_for('login'))
 
-        
+    my_subscription_id = config.SUBSCRIPTION_ID   # your Azure Subscription Id
+    my_resource_group = 'edulab-dev-005'          # the resource group for deployment
+    
+    if 'access_token' in flask.session:
+        deployer = Deployer(my_subscription_id, my_resource_group, CREDENTIALS, 'vm-five')
+        my_deployment = deployer.deploy()
+    
+        return render_template(
+            'manage.html', 
+            title='Management',
+            message='Your VM Was Successfully Deployed!',
+            vm_name='input test vm', 
+            resource_group=deployer.resource_group,
+            location='East US'
+            # credentials=CREDENTIALS
+        )
 # @app.route('/graphcall')
 # def graphcall():
 #     if 'access_token' not in flask.session:
