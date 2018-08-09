@@ -34,38 +34,7 @@ USERNAME = ""
 # USERNAME_NEW="",
 # VM_NAME="default",
 # RESOURCE_GROUP="default",
-# LOCATION="default"
-
-@app.route('/home', methods=('GET', 'POST'))
-def home():
-    global USERNAME_NEW
-    global VM_NAME 
-    global RESOURCE_GROUP
-    global LOCATION
-
-    if request.method == 'POST':
-        USERNAME_NEW = 'TEST'
-        VM_NAME = request.form['vm_name']
-        RESOURCE_GROUP = request.form['resource_group']
-        LOCATION = request.form['location']
-        # db = get_db()
-
-        # db.execute(
-        #         'INSERT INTO course (username, vm_name, resource_group, location) VALUES (?, ?, ?, ?)',
-        #         (USERNAME_NEW, VM_NAME, RESOURCE_GROUP, LOCATION)  
-        # )
-        # db.commit()
-
-        # return redirect(url_for('manage'))
-        return flask.redirect('/DeployTemplate')
-
-    """Renders the home page."""
-    return render_template(
-        'index.html',
-        title='Home Page',
-        year=datetime.now().year,
-        username=USERNAME
-    )   
+# LOCATION="default"  
 
 @app.route('/manage', methods=('GET', 'POST'))
 def manage():
@@ -164,16 +133,50 @@ def auth():
     #     # username=USERNAME
     # )
 
+
+@app.route('/home', methods=('GET', 'POST'))
+def home():
+    global VM_NAME 
+    global RESOURCE_GROUP
+    global LOCATION
+
+    # UPON FORM BEING FILLED OUT BY USER: this sends info for deployment
+    if request.method == 'POST':
+        VM_NAME = request.form['vm_name']
+        RESOURCE_GROUP = request.form['resource_group']
+        LOCATION = request.form['location']
+
+        flask.session['resource_group'] = RESOURCE_GROUP
+
+        # db = get_db()
+
+        # db.execute(
+        #         'INSERT INTO course (username, vm_name, resource_group, location) VALUES (?, ?, ?, ?)',
+        #         (USERNAME_NEW, VM_NAME, RESOURCE_GROUP, LOCATION)  
+        # )
+        # db.commit()
+
+        # return redirect(url_for('manage'))
+        return flask.redirect('/DeployTemplate')
+
+    """Renders the home page."""
+    return render_template(
+        'index.html',
+        title='Home Page',
+        year=datetime.now().year,
+        username=USERNAME
+    )   
+
 @app.route('/DeployTemplate')
 def DeployTemplate():
     if 'access_token' not in flask.session:
         return flask.redirect(flask.url_for('login'))
 
     my_subscription_id = config.SUBSCRIPTION_ID   # your Azure Subscription Id
-    my_resource_group = 'edulab-dev-005'          # the resource group for deployment
+    resource_group = flask.session['resource_group']         # the resource group for deployment
     
     if 'access_token' in flask.session:
-        deployer = Deployer(my_subscription_id, my_resource_group, CREDENTIALS, 'vm-five')
+        deployer = Deployer(my_subscription_id, resource_group, CREDENTIALS, 'vm-five')
         my_deployment = deployer.deploy()
     
         return render_template(

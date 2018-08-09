@@ -32,7 +32,7 @@ class Deployer(object):
             template = json.load(template_file_fd)
 
         parameters = {
-            'vmName': 'test-vm-4',
+            'vmName': 'test-vm-5',
         }
         parameters = {k: {'value': v} for k, v in parameters.items()}
 
