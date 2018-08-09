@@ -138,7 +138,7 @@ def auth():
     my_resource_group = 'edulab-dev-005'          # the resource group for deployment
     
     if 'access_token' in flask.session:
-        deployer = Deployer(my_subscription_id, my_resource_group, CREDENTIALS)
+        deployer = Deployer(my_subscription_id, my_resource_group, CREDENTIALS, 'vm-two')
         my_deployment = deployer.deploy()
     
         return render_template(
@@ -149,10 +149,7 @@ def auth():
             resource_group=deployer.resource_group,
             location='East US',
             credentials=CREDENTIALS
-            # example_list=my_deployment
-            # connection=deployer.dns_label_prefix
-        # graph_data=graph_data,
-        # username=USERNAME
+
     )
     # return render_template(
     #     'auth.html', 

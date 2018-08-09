@@ -18,25 +18,14 @@ class Deployer(object):
     name_generator = Haikunator()
 
 # INITALIZE THE CLASS WITH THE SUBSCRIPTION ID AND RESOURCE GROUP INPUTTED
-    def __init__(self, subscription_id, resource_group, credentials):
+    def __init__(self, subscription_id, resource_group, credentials, vm_name):
         self.subscription_id = subscription_id
         self.resource_group = resource_group
-        # self.dns_label_prefix = self.name_generator.haikunate()
+        self.vm_name = vm_name
         self.credentials = credentials
-
-        # pub_ssh_key_path = os.path.expanduser(pub_ssh_key_path)
-        # # Will raise if file not exists or not enough permission
-        # with open(pub_ssh_key_path, 'r') as pub_ssh_file_fd:
-        #     self.pub_ssh_key = pub_ssh_file_fd.read()
-
-        # self.credentials = AdalAuthentication(
-        #     flask.session['access_token'],
-        #     config.MANAGE_RESOURCE,
-        #     config.CLIENT_ID,
-        #     config.CLIENT_SECRET
-        # )
         self.client = ResourceManagementClient(self.credentials, self.subscription_id)
 
+# DEPLOY THE VIRTUAL MACHINE ACCORDING TO VALUES YOU SET FOR YOURSELF WHEN YOU CALLED THE CLASS
     def deploy(self):
         template_path = os.path.join(os.path.dirname(__file__), 'templates', 'template.json')
         with open(template_path, 'r') as template_file_fd:
@@ -44,17 +33,8 @@ class Deployer(object):
 
         parameters = {
             'vmName': 'test-vm',
-            # 'dnsLabelPrefix': self.dns_label_prefix
         }
         parameters = {k: {'value': v} for k, v in parameters.items()}
-
-        # deployment_properties = {
-        #     'mode': DeploymentMode.incremental,
-        #     'template': template,
-        #     'parameters': parameters
-    
-        # template_link = TemplateLink('https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vm-simple-windows/azuredeploy.json')
-        # parameters_link = ParametersLink('https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vm-simple-windows/azuredeploy.parameters.json')
 
         deployment_prop = DeploymentProperties(
             mode='Incremental',
@@ -63,8 +43,8 @@ class Deployer(object):
         )
 
         deployment_async_operation = self.client.deployments.create_or_update(
-            'edulab-dev-005',
-            'vm-name',
+            self.resource_group,
+            self.vm_name,
             deployment_prop
         )
 
