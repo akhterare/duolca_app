@@ -31,10 +31,6 @@ TOKEN = ""
 AUTH_TOKEN = ""
 # CREDENTIALS = ""
 USERNAME = ""
-# USERNAME_NEW="",
-# VM_NAME="default",
-# RESOURCE_GROUP="default",
-# LOCATION="default"  
 
 @app.route('/manage', methods=('GET', 'POST'))
 def manage():
@@ -147,6 +143,7 @@ def home():
         LOCATION = request.form['location']
 
         flask.session['resource_group'] = RESOURCE_GROUP
+        flask.session['vm_name'] = VM_NAME
 
         # db = get_db()
 
@@ -176,14 +173,15 @@ def DeployTemplate():
     resource_group = flask.session['resource_group']         # the resource group for deployment
     
     if 'access_token' in flask.session:
-        deployer = Deployer(my_subscription_id, resource_group, CREDENTIALS, 'vm-five')
+        vm_name = flask.session['vm_name']
+        deployer = Deployer(my_subscription_id, resource_group, CREDENTIALS, vm_name)
         my_deployment = deployer.deploy()
     
         return render_template(
             'manage.html', 
             title='Management',
             message='Your VM Was Successfully Deployed!',
-            vm_name='input test vm', 
+            vm_name=vm_name, 
             resource_group=deployer.resource_group,
             location='East US'
             # credentials=CREDENTIALS
