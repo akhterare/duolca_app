@@ -23,7 +23,28 @@ body {
     font-family: "Segoe UI";
     padding: 80px;
     margin-bottom: 30px;
+    font-size: 16px;
 }
+    
+.main-header {
+    height: 250px;
+    width: 100%;
+    background-color: #1d539d;
+    color: white;
+    padding-top: 25px;
+    padding-bottom:25px;
+    box-sizing: border-box;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    font-family: "Segoe UI";
+    /* padding: 80px; */
+    /* margin-bottom: 30px; */
+}
+
+    .main-container .text-center h3 {
+    font-size: 32px;
+    font-family: "Segoe UI"
+    }
 
 .cloud-image {
     width: 350px;
@@ -79,4 +100,9 @@ body {
 
 .col-md-4 {
     color: black;
+}
+
+.bg-1 { 
+    background-color: #1abc9c; /* Green */
+    color: #ffffff;
 }

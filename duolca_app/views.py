@@ -137,16 +137,17 @@ def auth():
     
     if 'access_token' in flask.session:
         deployer = Deployer(my_subscription_id, my_resource_group, CREDENTIALS)
-        my_deployment = deployer.deploy()
+        # my_deployment = deployer.deploy()
     
-        render_template(
+        return render_template(
             'manage.html', 
             title='Management',
             message='Your VM Was Successfully Deployed!',
             vm_name='input test vm', 
             resource_group=deployer.resource_group,
             location='East US',
-            connection=deployer.dns_label_prefix
+            credentials=CREDENTIALS
+            # connection=deployer.dns_label_prefix
         # graph_data=graph_data,
         # username=USERNAME
     )
@@ -166,31 +167,7 @@ def DeployTemplate():
     if 'access_token' not in flask.session:
         return flask.redirect(flask.url_for('login'))
 
-# This script expects that the following environment vars are set:
-#
-# config.TENANT: with your Azure Active Directory tenant id or domain
-# config.CLIENT_ID: with your Azure Active Directory Application Client ID
-# config.CLIENT_SECRET: with your Azure Active Directory Application Secret
-    
-
-# # msg = "\nInitializing the Deployer class with subscription id: {}, resource group: {}" \
-# #     "\nand public key located at: {}...\n\n"
-# # msg = msg.format(my_subscription_id, my_resource_group, my_pub_ssh_key_path)
-# # print(msg)
-
-# Initialize the deployer class
-    
-
-    
-# print("Beginning the deployment... \n\n")
-# # Deploy the template
-# my_deployment = deployer.deploy()
-
-# print("Done deploying!! \n\nYou can connect via: `ssh azureSample@{}.eastus.cloudapp.azure.com`".format(deployer.dns_label_prefix))
-
-# Destroy the resource group which contains the deployment
-# deployer.destroy()
-    
+        
 # @app.route('/graphcall')
 # def graphcall():
 #     if 'access_token' not in flask.session:
@@ -207,8 +184,6 @@ def DeployTemplate():
     # USERNAME = graph_data['givenName']
 
     # MAKE A CALL TO THE MANAGEMENT API TO MANAGE AZURE RESOURCES
-
-
     # endpoint = config.MANAGE_RESOURCE + '/subscription/' + config.SUBSCRIPTION_ID + '/resourcegroups/edulab_dev_infra005/providers/Microsoft.Resources/deployments/TestDeploy?' + config.API_VERSION 
     # http_headers = {'Authorization': flask.session.get('access_token'),
     #                 'User-Agent': 'duolca_app',
