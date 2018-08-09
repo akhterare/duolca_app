@@ -27,7 +27,7 @@ body {
 }
     
 .main-header {
-    height: 250px;
+    height: 200px;
     width: 100%;
     background-color: #1d539d;
     color: white;
@@ -43,7 +43,7 @@ body {
 
     .main-container .text-center h3 {
     font-size: 32px;
-    font-family: "Segoe UI"
+    font-family: "Segoe UI";
     }
 
 .cloud-image {

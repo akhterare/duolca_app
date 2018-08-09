@@ -5,7 +5,7 @@ import json
 from haikunator import Haikunator
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
-from azure.mgmt.resource.resources.models import DeploymentMode
+from azure.mgmt.resource.resources.models import DeploymentMode, DeploymentProperties, TemplateLink, ParametersLink
 from msrestazure.azure_active_directory import AdalAuthentication
 import flask
 
@@ -38,15 +38,6 @@ class Deployer(object):
         self.client = ResourceManagementClient(self.credentials, self.subscription_id)
 
     def deploy(self):
-    # Deploy your template to your desired resource group 
-
-        # self.client.resource_groups.create_or_update(
-        #     self.resource_group,
-        #     {
-        #         'location':'westeurope'
-        #     }
-        # )
-
         template_path = os.path.join(os.path.dirname(__file__), 'templates', 'template.json')
         with open(template_path, 'r') as template_file_fd:
             template = json.load(template_file_fd)
@@ -55,18 +46,27 @@ class Deployer(object):
             'vmName': 'test-vm',
             # 'dnsLabelPrefix': self.dns_label_prefix
         }
-      #  parameters = {k: {'value': v} for k, v in parameters.items()}
+        parameters = {k: {'value': v} for k, v in parameters.items()}
 
-        deployment_properties = {
-            'mode': DeploymentMode.incremental,
-            'template': template,
-            'parameters': parameters
-        }
+        # deployment_properties = {
+        #     'mode': DeploymentMode.incremental,
+        #     'template': template,
+        #     'parameters': parameters
+    
+        # template_link = TemplateLink('https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vm-simple-windows/azuredeploy.json')
+        # parameters_link = ParametersLink('https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vm-simple-windows/azuredeploy.parameters.json')
+
+        deployment_prop = DeploymentProperties(
+            mode='Incremental',
+            template=template,
+            parameters=parameters
+        )
 
         deployment_async_operation = self.client.deployments.create_or_update(
-            self.resource_group,
-            'test-vm',
-          #  deployment_properties
+            'edulab-dev-005',
+            'vm-name',
+            deployment_prop
         )
+
         # result = deployment_async_operation.result()
         deployment_async_operation.wait()

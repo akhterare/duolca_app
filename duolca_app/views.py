@@ -122,9 +122,11 @@ def auth():
      # GET THE AZURE RESOURCE MANAGEMENT ACCESS TOKEN
     resource = 'https://management.azure.com'
     context = adal.AuthenticationContext(AUTHORITY_URL)
+
     TOKEN = context.acquire_token_with_authorization_code(code, REDIRECT_URI, resource, client_id, client_secret)
+
     CREDENTIALS = AdalAuthentication(
-        context.acquire_token_with_authorization_code(code, REDIRECT_URI, resource, client_id, client_secret),
+        context.acquire_token_with_client_credentials,
         config.MANAGE_RESOURCE,
         config.CLIENT_ID,
         config.CLIENT_SECRET
@@ -137,7 +139,7 @@ def auth():
     
     if 'access_token' in flask.session:
         deployer = Deployer(my_subscription_id, my_resource_group, CREDENTIALS)
-        # my_deployment = deployer.deploy()
+        my_deployment = deployer.deploy()
     
         return render_template(
             'manage.html', 
@@ -147,6 +149,7 @@ def auth():
             resource_group=deployer.resource_group,
             location='East US',
             credentials=CREDENTIALS
+            # example_list=my_deployment
             # connection=deployer.dns_label_prefix
         # graph_data=graph_data,
         # username=USERNAME
