@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h2>{{ title }}</h2>
+<h3>Hi {{ username }}, here's your profile.</h3>
+
+<h3><b>User Data</h3>
+<table>
+{% for key, value in graph_data.items() %}
+    <tr>
+        <th> {{ key }} </th>
+        <td> {{ value }} </td>
+   </tr> 
+{% endfor %}
+</table>
+
+{% endblock %}

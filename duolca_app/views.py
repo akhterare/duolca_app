@@ -74,6 +74,9 @@ def login():
 @app.route("/getAToken", methods=['GET', 'POST'])
 def auth():
     global CREDENTIALS
+    global USERNAME
+    global GRAPH_DATA
+
     code = flask.request.args['code']
     state = flask.request.args['state']
    
@@ -99,6 +102,19 @@ def auth():
     )
     
     flask.session['access_token'] = TOKEN['accessToken']
+
+    # MAKE A CALL TO THE GRAPH API TO GET USER INFO WHICH WILL ALWAYS BE USED!
+    endpoint = config.AUTH_RESOURCE + '/' + config.API_VERSION + '/me/'
+    http_headers = {'Authorization': flask.session.get('auth_access_token'),
+                    'User-Agent': 'duolca_app',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'client-request-id': str(uuid.uuid4())}
+    GRAPH_DATA = requests.get(endpoint, headers=http_headers, stream=False).json()
+
+    flask.session['username'] = GRAPH_DATA['givenName']
+    USERNAME = GRAPH_DATA['givenName']
+    # flask.session['username'] = USERNAME
 
     return flask.redirect('/home')
 
@@ -162,7 +178,7 @@ def home():
         title='Home Page',
         year=datetime.now().year,
         username=USERNAME
-    )   
+    ) 
 
 @app.route('/DeployTemplate')
 def DeployTemplate():
@@ -222,6 +238,8 @@ def DeployTemplate():
 
 @app.route('/contact')
 def contact():
+    check_username(USERNAME)
+
     """Renders the contact page."""
     return render_template(
         'contact.html',
@@ -234,6 +252,8 @@ def contact():
 
 @app.route('/about')
 def about():
+    check_username(USERNAME)
+
     """Renders the about page."""
     return render_template(
         'about.html',
@@ -243,3 +263,20 @@ def about():
         username=USERNAME
     )
 
+@app.route('/profile')
+def profile():
+    check_username(USERNAME)
+
+    """Renders the about page."""
+    return render_template(
+        'profile.html',
+        title='Your Profile',
+        year=datetime.now().year,
+        username=USERNAME,
+        graph_data=GRAPH_DATA
+    )
+
+def check_username(username):
+    if USERNAME is None:
+        return flask.redirect('/')
+    
