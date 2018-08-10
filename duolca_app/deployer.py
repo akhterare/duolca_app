@@ -25,6 +25,14 @@ class Deployer(object):
         self.credentials = credentials
         self.client = ResourceManagementClient(self.credentials, self.subscription_id)
 
+# CHECK WHETHER OR NOT A DEPLOYMENT EXISTS
+    def check_deployment(self):
+        deployed = self.client.deployments.check_existence(
+            self.resource_group,
+            self.vm_name
+        ) 
+        return deployed
+
 # DEPLOY THE VIRTUAL MACHINE ACCORDING TO VALUES YOU SET FOR YOURSELF WHEN YOU CALLED THE CLASS
     def deploy(self):
         template_path = os.path.join(os.path.dirname(__file__), 'templates', 'template.json')
@@ -50,3 +58,12 @@ class Deployer(object):
 
         # result = deployment_async_operation.result()
         deployment_async_operation.wait()
+
+# COLLECT INFORMATION ABOUT THE DEPLOYMENT 
+    def DeleteResources():
+        resource_list=[]
+        for item in client.resource_groups.list_resources(GROUP_NAME):
+            resource_list.append(item)
+            
+        return resource_list
+    

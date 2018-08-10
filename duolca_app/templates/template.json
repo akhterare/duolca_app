@@ -18,7 +18,7 @@
       },
       "dnsLabelPrefix": {
         "type": "string",
-        "defaultValue": "duolcasamp",
+        "defaultValue": "concat(parameters('vmName'), 'duolcasamp",
         "metadata": {
           "description": "Unique DNS Name for the Public IP used to access the Virtual Machine."
         }

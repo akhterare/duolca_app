@@ -27,28 +27,10 @@ REDIRECT_URI = 'https://duolcaapp.azurewebsites.net/getAToken'
 TEMPLATE_AUTHZ_URL = ('https://login.microsoftonline.com/{}/oauth2/authorize?' +
                       'response_type=code&client_id={}&redirect_uri={}&' +
                       'state={}&resource={}')
-TOKEN = ""
-AUTH_TOKEN = ""
+# TOKEN = ""
+# AUTH_TOKEN = ""
 # CREDENTIALS = ""
 USERNAME = ""
-
-@app.route('/manage', methods=('GET', 'POST'))
-def manage():
-        # db.execute(
-        #         'INSERT INTO course (username, vm_name, resource_group, location) VALUES (?, ?, ?, ?)',
-        #         (username, vm_name, resource_group, location)
-        #     )
-        #     db.commit()
-
-        return render_template(
-            'manage.html', 
-            title='Management',
-            message='Your VM Was Created and Logged!',
-            username=USERNAME_NEW,
-            vm_name=VM_NAME,
-            resource_group=RESOURCE_GROUP,
-            location=LOCATION
-        )
 
 @app.route('/')
 def main():
@@ -76,6 +58,8 @@ def auth():
     global CREDENTIALS
     global USERNAME
     global GRAPH_DATA
+    global TOKEN
+    global AUTH_TOKEN
 
     code = flask.request.args['code']
     state = flask.request.args['state']
@@ -93,6 +77,7 @@ def auth():
     resource = 'https://management.azure.com'
     context = adal.AuthenticationContext(AUTHORITY_URL)
     TOKEN = context.acquire_token_with_authorization_code(code, REDIRECT_URI, resource, client_id, client_secret)
+    flask.session['access_token'] = TOKEN['accessToken']
 
     CREDENTIALS = AdalAuthentication(
         context.acquire_token_with_client_credentials,
@@ -100,8 +85,6 @@ def auth():
         config.CLIENT_ID,
         config.CLIENT_SECRET
     )
-    
-    flask.session['access_token'] = TOKEN['accessToken']
 
     # MAKE A CALL TO THE GRAPH API TO GET USER INFO WHICH WILL ALWAYS BE USED!
     endpoint = config.AUTH_RESOURCE + '/' + config.API_VERSION + '/me/'
@@ -114,16 +97,8 @@ def auth():
 
     flask.session['username'] = GRAPH_DATA['givenName']
     USERNAME = GRAPH_DATA['givenName']
-    # flask.session['username'] = USERNAME
 
     return flask.redirect('/home')
-
-    # my_subscription_id = config.SUBSCRIPTION_ID   # your Azure Subscription Id
-    # my_resource_group = 'edulab-dev-005'          # the resource group for deployment
-    
-    # if 'access_token' in flask.session:
-    #     deployer = Deployer(my_subscription_id, my_resource_group, CREDENTIALS, 'vm-two')
-    #     my_deployment = deployer.deploy()
     
     #     return render_template(
     #         'manage.html', 
@@ -144,7 +119,6 @@ def auth():
     #     # graph_data=graph_data,
     #     # username=USERNAME
     # )
-
 
 @app.route('/home', methods=('GET', 'POST'))
 def home():
@@ -182,6 +156,9 @@ def home():
 
 @app.route('/DeployTemplate')
 def DeployTemplate():
+    global DEPLOYER
+    global DEPLOY_STATE
+
     if 'access_token' not in flask.session:
         return flask.redirect(flask.url_for('login'))
 
@@ -189,52 +166,61 @@ def DeployTemplate():
     resource_group = flask.session['resource_group']         # the resource group for deployment
     
     if 'access_token' in flask.session:
+        # Duolca initializes the Deployer class with values entered by user, and credentials generated in GetAToken
         vm_name = flask.session['vm_name']
-        deployer = Deployer(my_subscription_id, resource_group, CREDENTIALS, vm_name)
-        my_deployment = deployer.deploy()
-    
-        return render_template(
-            'manage.html', 
-            title='Management',
-            message='Your VM Was Successfully Deployed!',
-            vm_name=vm_name, 
-            resource_group=deployer.resource_group,
-            location='East US'
-            # credentials=CREDENTIALS
-        )
-# @app.route('/graphcall')
-# def graphcall():
-#     if 'access_token' not in flask.session:
-#         return flask.redirect(flask.url_for('login'))
+        DEPLOYER = Deployer(my_subscription_id, resource_group, CREDENTIALS, vm_name)
+        
+        # Check if the deployment user wants to start has already been created or not 
+        DEPLOY_STATE = DEPLOYER.check_deployment()
 
-#     # # MAKE A CALL TO THE GRAPH API TO GET USER INFO 
-    # endpoint = config.AUTH_RESOURCE + '/' + config.API_VERSION + '/me/'
-    # http_headers = {'Authorization': flask.session.get('auth_access_token'),
-    #                 'User-Agent': 'duolca_app',
-    #                 'Accept': 'application/json',
-    #                 'Content-Type': 'application/json',
-    #                 'client-request-id': str(uuid.uuid4())}
-    # graph_data = requests.get(endpoint, headers=http_headers, stream=False).json()
-    # USERNAME = graph_data['givenName']
+        # If not deployed already, Duolca will deploy 
+        if DEPLOY_STATE == False:
+            my_deployment = DEPLOYER.deploy()
+        
+        # Regardless, Duolca redirects to the VM management screen 
+        return flask.redirect('/manage')
+    else: 
+        return flask.redirect('/')
 
-    # MAKE A CALL TO THE MANAGEMENT API TO MANAGE AZURE RESOURCES
-    # endpoint = config.MANAGE_RESOURCE + '/subscription/' + config.SUBSCRIPTION_ID + '/resourcegroups/edulab_dev_infra005/providers/Microsoft.Resources/deployments/TestDeploy?' + config.API_VERSION 
+@app.route('/manage', methods=('GET', 'POST'))
+def manage():
+    if 'access_token' not in flask.session:
+        return flask.redirect(flask.url_for('login'))
+
+    # resources_delete_state = False
+
+    # Collect information about the deployed VM 
+    # if request.method=='POST':
+    #     DEPLOYER.DeleteResources(DEPLOYER.resource_group)
+    #     resources_delete_state = True
+
+    endpoint = config.AUTH_RESOURCE + '/' + config.API_VERSION + '/me/'
+    http_headers = {'Authorization': AUTH_TOKEN,
+                    'User-Agent': 'duolca_app',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'client-request-id': str(uuid.uuid4())}
+    IP_ADDRESS_DATA = requests.get(endpoint, headers=http_headers, stream=False).json()
+    # endpoint = config.MANAGE_RESOURCE + '/subscriptions/' + config.SUBSCRIPTION_ID + '/resourceGroups/' + RESOURCE_GROUP + '/providers/Microsoft.Network/publicIPAddresses/' + DEPLOYER.vm_name + '-duolcasampPublicIP?api-version=2018-04-01' 
     # http_headers = {'Authorization': flask.session.get('access_token'),
     #                 'User-Agent': 'duolca_app',
     #                 'Accept': 'application/json',
     #                 'Content-Type': 'application/json',
     #                 'client-request-id': str(uuid.uuid4())}
-    #  = requests.put(endpoint, headers=http_headers, stream=False).json()
-    # # USERNAME = graph_data['givenName']
+    # IP_ADDRESS_DATA = requests.get(endpoint, headers=http_headers, stream=False).json()
 
-    # return render_template(
-    #     'auth.html', 
-    #     title='Authorization',
-    #     message='We Have Your Auth Info!',
-    #     access_token=TOKEN, 
-    #     graph_data=graph_data,
-    #     username=USERNAME
-    # )
+    return render_template(
+            'manage.html', 
+            title='Management',
+            message='Your VM Was Successfully Deployed!',
+            vm_name=DEPLOYER.vm_name, 
+            resource_group=DEPLOYER.resource_group,
+            location='East US',
+            deploy_state=DEPLOY_STATE, 
+            # resources_delete_state=resources_delete_state,
+            ip_data = IP_ADDRESS_DATA,
+            username=USERNAME
+        )
 
 @app.route('/contact')
 def contact():

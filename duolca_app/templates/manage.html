@@ -9,8 +9,24 @@
 <p>Your course is {{ vm_name }}</p>
 <p>Your resource group is {{ resource_group }}</p>
 <p>Your location is {{ location }}</p>
+<p>Your deploy state is {{ deploy_state }}</p>
+<p>Have your resources been deleted? {{ resources_delete_state }}</p>
 
 <!-- <p>Your credentials are {{ credentials }}</p> -->
 <!-- <p>Your resources are {{ example_list }}</p> -->
+
+<form method="POST">
+    <input type="submit" value="Delete Resources">
+</form> 
+
+<h3><b>IP Data</h3>
+    <table>
+    {% for key, value in ip_data.items() %}
+        <tr>
+            <th> {{ key }} </th>
+            <td> {{ value }} </td>
+       </tr> 
+    {% endfor %}
+    </table>
 
 {% endblock %}
