@@ -8,8 +8,13 @@
     <div class="create-vm-form">
         <form method='POST'>
             <div class="form-group">
-              <label for="vm_name">Course Name</label>
-              <input type="text" class="form-control" id="vm_name" name="vm_name" placeholder="Enter name of your course">
+              <label for="course_name">Course Name</label>
+              <input type="text" class="form-control" id="course_name" name="course_name" placeholder="Enter name of your course">
+            </div>
+
+            <div class="form-group">
+              <label for="deploy_name">Deployment Name</label>
+              <input type="text" class="form-control" id="deploy_name" name="deploy_name" placeholder="Enter unique deployment name">
             </div>
 
             <div class="form-group">
@@ -32,7 +37,7 @@
                 </select>
             </div>  
 
-            <input type="submit" value="Deploy VM">
+            <input type="submit" value="Deploy Lab">
             <!-- <a href="{{ url_for('manage') }}" type="submit" class="btn btn-primary">Submit</a> -->
             <!-- <button type="submit" class="btn btn-primary">Submit</button> -->
           </form>

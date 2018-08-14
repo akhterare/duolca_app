@@ -18,7 +18,7 @@
       },
       "dnsLabelPrefix": {
         "type": "string",
-        "defaultValue": "concat(parameters('vmName'), 'duolcasamp",
+        "defaultValue": "duolcatrial",
         "metadata": {
           "description": "Unique DNS Name for the Public IP used to access the Virtual Machine."
         }
@@ -66,31 +66,31 @@
       },
       "subnetName": {
         "type": "string",
-        "defaultValue": "duolcasamp-subnet",
+        "defaultValue": "duolcatrial-subnet",
         "metadata": {
           "description": "Name of the subnet"
         }
       },
       "virtualNetworkName": {
         "type": "string",
-        "defaultValue": "duolcasampVNET",
+        "defaultValue": "duolcatrialVNET",
         "metadata": {
           "description": "Name of the virtual network"
         }
       }
     },
     "variables": {
-      "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'duolcasamp')]",
+      "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'duolcatrial')]",
       "location": "[resourceGroup().location]",
       "osDiskName": "osDisk1",
       "addressPrefix": "10.0.0.0/16",
       "subnetPrefix": "10.0.0.0/24",
-      "vmStorageAccountContainerName": "duolcasamp-vhds",
-      "nicName": "[concat(parameters('vmName'), '-duolcasampNIC')]",
-      "publicIPAddressName": "[concat(parameters('vmName'), '-duolcasampPublicIP')]",
+      "vmStorageAccountContainerName": "duolcatrial-vhds",
+      "nicName": "[concat(parameters('vmName'), '-duolcatrialNIC')]",
+      "publicIPAddressName": "[concat(parameters('vmName'), '-duolcatrialPublicIP')]",
       "publicIPAddressType": "Dynamic",
       "storageAccountType": "Standard_LRS",
-      "networkSecurityGroupName": "[concat(parameters('vmName'), '-duolcasampNSG')]",
+      "networkSecurityGroupName": "[concat(parameters('vmName'), '-duolcatrialNSG')]",
       "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
       "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnetName'))]",
       "apiVersion": "2015-06-15"

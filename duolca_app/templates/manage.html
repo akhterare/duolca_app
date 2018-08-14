@@ -6,7 +6,7 @@
 <h3>Hi {{ username }}, {{ message }}</h3>
 
 <h3><b>User Data</h3>
-<p>Your course is {{ vm_name }}</p>
+<p>Your course is {{ course_name }}</p>
 <p>Your resource group is {{ resource_group }}</p>
 <p>Your location is {{ location }}</p>
 <p>Your deploy state is {{ deploy_state }}</p>
@@ -20,13 +20,6 @@
 </form> 
 
 <h3><b>IP Data</h3>
-    <table>
-    {% for key, value in ip_data.items() %}
-        <tr>
-            <th> {{ key }} </th>
-            <td> {{ value }} </td>
-       </tr> 
-    {% endfor %}
-    </table>
+<p>Your data is {{ ip_data }}</p>
 
 {% endblock %}

@@ -70,14 +70,16 @@ def auth():
     # GET THE MICROSOFT GRAPH ACCESS TOKEN
     resource = 'https://graph.microsoft.com'
     context = adal.AuthenticationContext(AUTHORITY_URL)
-    AUTH_TOKEN = context.acquire_token_with_authorization_code(code, REDIRECT_URI, resource, client_id, client_secret)
-    flask.session['auth_access_token'] = AUTH_TOKEN['accessToken']
+    auth_token = context.acquire_token_with_authorization_code(code, REDIRECT_URI, resource, client_id, client_secret)
+    flask.session['auth_access_token'] = auth_token['accessToken']
+    AUTH_TOKEN = auth_token['accessToken']
 
     # GET THE AZURE RESOURCE MANAGEMENT ACCESS TOKEN
     resource = 'https://management.azure.com'
     context = adal.AuthenticationContext(AUTHORITY_URL)
-    TOKEN = context.acquire_token_with_authorization_code(code, REDIRECT_URI, resource, client_id, client_secret)
-    flask.session['access_token'] = TOKEN['accessToken']
+    manage_token = context.acquire_token_with_authorization_code(code, REDIRECT_URI, resource, client_id, client_secret)
+    flask.session['access_token'] = manage_token['accessToken']
+    TOKEN = manage_token['accessToken']
 
     CREDENTIALS = AdalAuthentication(
         context.acquire_token_with_client_credentials,
@@ -122,26 +124,20 @@ def auth():
 
 @app.route('/home', methods=('GET', 'POST'))
 def home():
-    global VM_NAME 
+    global COURSE_NAME
+    global DEPLOY_NAME
     global RESOURCE_GROUP
     global LOCATION
 
     # UPON FORM BEING FILLED OUT BY USER: this sends info for deployment
     if request.method == 'POST':
-        VM_NAME = request.form['vm_name']
+        COURSE_NAME = request.form['course_name']
         RESOURCE_GROUP = request.form['resource_group']
         LOCATION = request.form['location']
+        DEPLOY_NAME = request.form['deploy_name']
 
         flask.session['resource_group'] = RESOURCE_GROUP
-        flask.session['vm_name'] = VM_NAME
-
-        # db = get_db()
-
-        # db.execute(
-        #         'INSERT INTO course (username, vm_name, resource_group, location) VALUES (?, ?, ?, ?)',
-        #         (USERNAME_NEW, VM_NAME, RESOURCE_GROUP, LOCATION)  
-        # )
-        # db.commit()
+        flask.session['course_name'] = COURSE_NAME
 
         # return redirect(url_for('manage'))
         return flask.redirect('/DeployTemplate')
@@ -158,24 +154,29 @@ def home():
 def DeployTemplate():
     global DEPLOYER
     global DEPLOY_STATE
+    global RESOURCE_GROUP_EMPTY
 
     if 'access_token' not in flask.session:
         return flask.redirect(flask.url_for('login'))
 
     my_subscription_id = config.SUBSCRIPTION_ID   # your Azure Subscription Id
     resource_group = flask.session['resource_group']         # the resource group for deployment
-    
+    course_name = flask.session['course_name']
+    public_ip = '/subscriptions/' + config.SUBSCRIPTION_ID + '/resourceGroups/' + RESOURCE_GROUP + '/providers/Microsoft.Network/publicIPAddresses/' +  course_name + '-duolcatrialPublicIP'
+
     if 'access_token' in flask.session:
         # Duolca initializes the Deployer class with values entered by user, and credentials generated in GetAToken
-        vm_name = flask.session['vm_name']
-        DEPLOYER = Deployer(my_subscription_id, resource_group, CREDENTIALS, vm_name)
-        
+        DEPLOYER = Deployer(my_subscription_id, resource_group, CREDENTIALS, course_name, public_ip, DEPLOY_NAME)
+
         # Check if the deployment user wants to start has already been created or not 
         DEPLOY_STATE = DEPLOYER.check_deployment()
 
         # If not deployed already, Duolca will deploy 
         if DEPLOY_STATE == False:
+            DEPLOYER.DeleteResources()
+            # RESOURCE_GROUP_EMPTY = True
             my_deployment = DEPLOYER.deploy()
+            return flask.redirect('/manage')
         
         # Regardless, Duolca redirects to the VM management screen 
         return flask.redirect('/manage')
@@ -187,38 +188,18 @@ def manage():
     if 'access_token' not in flask.session:
         return flask.redirect(flask.url_for('login'))
 
-    # resources_delete_state = False
-
-    # Collect information about the deployed VM 
-    # if request.method=='POST':
-    #     DEPLOYER.DeleteResources(DEPLOYER.resource_group)
-    #     resources_delete_state = True
-
-    endpoint = config.AUTH_RESOURCE + '/' + config.API_VERSION + '/me/'
-    http_headers = {'Authorization': AUTH_TOKEN,
-                    'User-Agent': 'duolca_app',
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'client-request-id': str(uuid.uuid4())}
-    IP_ADDRESS_DATA = requests.get(endpoint, headers=http_headers, stream=False).json()
-    # endpoint = config.MANAGE_RESOURCE + '/subscriptions/' + config.SUBSCRIPTION_ID + '/resourceGroups/' + RESOURCE_GROUP + '/providers/Microsoft.Network/publicIPAddresses/' + DEPLOYER.vm_name + '-duolcasampPublicIP?api-version=2018-04-01' 
-    # http_headers = {'Authorization': flask.session.get('access_token'),
-    #                 'User-Agent': 'duolca_app',
-    #                 'Accept': 'application/json',
-    #                 'Content-Type': 'application/json',
-    #                 'client-request-id': str(uuid.uuid4())}
-    # IP_ADDRESS_DATA = requests.get(endpoint, headers=http_headers, stream=False).json()
+    ip_data = DEPLOYER.ReturnIP()
 
     return render_template(
             'manage.html', 
             title='Management',
             message='Your VM Was Successfully Deployed!',
-            vm_name=DEPLOYER.vm_name, 
+            course_name=DEPLOYER.course_name, 
             resource_group=DEPLOYER.resource_group,
             location='East US',
             deploy_state=DEPLOY_STATE, 
             # resources_delete_state=resources_delete_state,
-            ip_data = IP_ADDRESS_DATA,
+            ip_data = ip_data,
             username=USERNAME
         )
 
@@ -261,6 +242,10 @@ def profile():
         username=USERNAME,
         graph_data=GRAPH_DATA
     )
+
+@app.route('/logout')
+def logout():
+    return 'Works'
 
 def check_username(username):
     if USERNAME is None:
