@@ -1,12 +1,16 @@
 {% extends "layout.html" %}
 
 {% block content %}
-
-<h3>Welcome, {{ username }}!</h3>
+<div class="main-header">
+    <div class="text-center">
+        <h1>Welcome to Duolca.</h1>
+        <p class="lead">Please enter your course info and decide whether to deploy or manage.</p>
+    </div>
+</div>
 
 <div class="main-container">
     <div class="create-vm-form">
-        <form method='POST'>
+        <form method='POST' action="{{ url_for('DeploySubmit') }}">
             <div class="form-group">
               <label for="course_name">Course Name</label>
               <input type="text" class="form-control" id="course_name" name="course_name" placeholder="Enter name of your course">
@@ -37,10 +41,33 @@
                 </select>
             </div>  
 
-            <input type="submit" value="Deploy Lab">
-            <!-- <a href="{{ url_for('manage') }}" type="submit" class="btn btn-primary">Submit</a> -->
-            <!-- <button type="submit" class="btn btn-primary">Submit</button> -->
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#deployedModal">Confirm Details</button>
+            <button type="submit" class="btn btn-primary">Deploy vLab</button>
+            <button type="submit" formaction="{{ url_for('ManageSubmit') }}" class="btn btn-primary">Manage vLab</button>
           </form>
     </div>  
+
+    <!-- The modal popup that should appear as a warning -->
+    <div class="modal fade" id="deployedModal" tabindex="-1" role="dialog" aria-labelledby="deployedModal" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Your Lab is Being Deployed.</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+
+        <div class="modal-body">
+        This is a popup to inform you that your course is being deployed. After clicking "Deploy VLab", the full deployment should take about 5-10 mins to complete. If your course was already deployed, a management screen will appear. 
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+
+</div>
 </div>
 {% endblock %}

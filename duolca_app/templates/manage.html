@@ -1,9 +1,27 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<div class="main-header">
+    <div class="text-center">
+        <h1>Your Virtual Lab Information</h1>
+        <p class="lead">Here's the information on your virtual lab.</p>
+    </div>
+</div>
 
-<h2>{{ title }}</h2>
-<h3>Hi {{ username }}, {{ message }}</h3>
+<div class="main-grid">
+    <div class="row primary-row">
+        <div class="col-sm-12">
+            <div class="text-center"><p>Your Public IP Address is {{ ip_data }}</p></div>
+        </div>
+    </div>
+
+    <div class="row content-row">
+        <div class="col-sm-3 text-center">Your course is {{ course_name }}</div>
+        <div class="col-sm-3 text-center">Your resource group is {{ resource_group }}</div>
+        <div class="col-sm-3 text-center">Your location is {{ location }}</div>
+        <div class="col-sm-3 text-center">Your deploy state is {{ deploy_state }}</div>
+    </div>
+</div>
 
 <h3><b>User Data</h3>
 <p>Your course is {{ course_name }}</p>
@@ -11,15 +29,5 @@
 <p>Your location is {{ location }}</p>
 <p>Your deploy state is {{ deploy_state }}</p>
 <p>Have your resources been deleted? {{ resources_delete_state }}</p>
-
-<!-- <p>Your credentials are {{ credentials }}</p> -->
-<!-- <p>Your resources are {{ example_list }}</p> -->
-
-<form method="POST">
-    <input type="submit" value="Delete Resources">
-</form> 
-
-<h3><b>IP Data</h3>
-<p>Your data is {{ ip_data }}</p>
 
 {% endblock %}

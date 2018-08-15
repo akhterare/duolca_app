@@ -3,5 +3,6 @@ Flask<1
 adal
 requests
 azure-mgmt-resource==0.31.0
+azure-mgmt-compute==2.0.0
 haikunator
 msrestazure

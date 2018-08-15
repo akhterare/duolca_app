@@ -102,46 +102,8 @@ def auth():
 
     return flask.redirect('/home')
     
-    #     return render_template(
-    #         'manage.html', 
-    #         title='Management',
-    #         message='Your VM Was Successfully Deployed!',
-    #         vm_name='input test vm', 
-    #         resource_group=deployer.resource_group,
-    #         location='East US',
-    #         credentials=CREDENTIALS
-
-    # )
-    # return render_template(
-    #     'auth.html', 
-    #     title='Authorization',
-    #     message='We Have Your Auth Info!',
-    #     access_token=TOKEN, 
-    #     credentials=CREDENTIALS
-    #     # graph_data=graph_data,
-    #     # username=USERNAME
-    # )
-
 @app.route('/home', methods=('GET', 'POST'))
 def home():
-    global COURSE_NAME
-    global DEPLOY_NAME
-    global RESOURCE_GROUP
-    global LOCATION
-
-    # UPON FORM BEING FILLED OUT BY USER: this sends info for deployment
-    if request.method == 'POST':
-        COURSE_NAME = request.form['course_name']
-        RESOURCE_GROUP = request.form['resource_group']
-        LOCATION = request.form['location']
-        DEPLOY_NAME = request.form['deploy_name']
-
-        flask.session['resource_group'] = RESOURCE_GROUP
-        flask.session['course_name'] = COURSE_NAME
-
-        # return redirect(url_for('manage'))
-        return flask.redirect('/DeployTemplate')
-
     """Renders the home page."""
     return render_template(
         'index.html',
@@ -150,6 +112,62 @@ def home():
         username=USERNAME
     ) 
 
+@app.route('/DeploySubmit', methods=('GET', 'POST'))
+def DeploySubmit():
+    global COURSE_NAME
+    global DEPLOY_NAME
+    global RESOURCE_GROUP
+    global LOCATION
+
+    # UPON FORM BEING FILLED OUT BY USER: this sends info for deployment
+    COURSE_NAME = request.form['course_name']
+    RESOURCE_GROUP = request.form['resource_group']
+    LOCATION = request.form['location']
+    DEPLOY_NAME = request.form['deploy_name']
+
+    flask.session['resource_group'] = RESOURCE_GROUP
+    flask.session['course_name'] = COURSE_NAME
+
+    return flask.redirect('/DeployTemplate')
+
+@app.route('/ManageSubmit', methods=('GET', 'POST'))
+def ManageSubmit():
+    global COURSE_NAME
+    global DEPLOY_NAME
+    global RESOURCE_GROUP
+    global LOCATION
+    global DEPLOY_STATE
+
+    # UPON FORM BEING FILLED OUT BY USER: this sends info for deployment
+    COURSE_NAME = request.form['course_name']
+    RESOURCE_GROUP = request.form['resource_group']
+    LOCATION = request.form['location']
+    DEPLOY_NAME = request.form['deploy_name']
+
+    my_subscription_id = config.SUBSCRIPTION_ID   # your Azure Subscription Id
+    resource_group = flask.session['resource_group']         # the resource group for deployment
+    course_name = flask.session['course_name']
+    public_ip = '/subscriptions/' + config.SUBSCRIPTION_ID + '/resourceGroups/' + RESOURCE_GROUP + '/providers/Microsoft.Network/publicIPAddresses/' +  course_name + '-duolcatrialPublicIP'
+    
+    DEPLOYER = Deployer(my_subscription_id, resource_group, CREDENTIALS, course_name, public_ip, DEPLOY_NAME)
+    DEPLOY_STATE = DEPLOYER.check_deployment()
+
+    if DEPLOY_STATE == False:
+        return flask.redirect('/')
+    else:
+        ip_data = DEPLOYER.ReturnIP()
+
+        return render_template(
+            'manage.html', 
+            deploy_name=DEPLOY_NAME,
+            course_name=COURSE_NAME,
+            resource_group=RESOURCE_GROUP,
+            location='East US',
+            deploy_state=DEPLOY_STATE, 
+            ip_data = ip_data,
+            username=USERNAME
+        )
+
 @app.route('/DeployTemplate')
 def DeployTemplate():
     global DEPLOYER
@@ -157,7 +175,7 @@ def DeployTemplate():
     global RESOURCE_GROUP_EMPTY
 
     if 'access_token' not in flask.session:
-        return flask.redirect(flask.url_for('login'))
+        return flask.redirect(flask.url_for('/'))
 
     my_subscription_id = config.SUBSCRIPTION_ID   # your Azure Subscription Id
     resource_group = flask.session['resource_group']         # the resource group for deployment
@@ -167,41 +185,60 @@ def DeployTemplate():
     if 'access_token' in flask.session:
         # Duolca initializes the Deployer class with values entered by user, and credentials generated in GetAToken
         DEPLOYER = Deployer(my_subscription_id, resource_group, CREDENTIALS, course_name, public_ip, DEPLOY_NAME)
-
+        
         # Check if the deployment user wants to start has already been created or not 
         DEPLOY_STATE = DEPLOYER.check_deployment()
+        post_deploy_state = False
 
         # If not deployed already, Duolca will deploy 
         if DEPLOY_STATE == False:
+            # Begin by clearing the existing resource group
             DEPLOYER.DeleteResources()
-            # RESOURCE_GROUP_EMPTY = True
-            my_deployment = DEPLOYER.deploy()
-            return flask.redirect('/manage')
-        
-        # Regardless, Duolca redirects to the VM management screen 
-        return flask.redirect('/manage')
-    else: 
-        return flask.redirect('/')
 
+            # Then run deployment from template, with deployer class having been initalized
+            my_deployment = DEPLOYER.deploy()
+
+            # Update the deploy_state to reflect new deployment
+            DEPLOY_STATE = True
+            post_deploy_state = True
+
+        # Once Duolca has determined whether it's deployed or not, it'll render appropriate screen
+        if DEPLOY_STATE == True: 
+            if post_deploy_state == True:
+                # Redirect to a management screen
+                return flask.redirect('/manage')
+            else:
+                return flask.redirect('/')
+        
 @app.route('/manage', methods=('GET', 'POST'))
 def manage():
-    if 'access_token' not in flask.session:
-        return flask.redirect(flask.url_for('login'))
-
     ip_data = DEPLOYER.ReturnIP()
 
     return render_template(
             'manage.html', 
-            title='Management',
-            message='Your VM Was Successfully Deployed!',
+            deploy_name=DEPLOYER.deploy_name,
             course_name=DEPLOYER.course_name, 
             resource_group=DEPLOYER.resource_group,
             location='East US',
             deploy_state=DEPLOY_STATE, 
-            # resources_delete_state=resources_delete_state,
             ip_data = ip_data,
             username=USERNAME
         )
+
+@app.route('/manage_new')
+def manage_new():
+    ip_data = DEPLOYER.ReturnIP()
+
+    return render_template(
+            'manage.html', 
+            deploy_name=DEPLOYER.deploy_name,
+            course_name=DEPLOYER.course_name, 
+            resource_group=DEPLOYER.resource_group,
+            location='East US',
+            deploy_state=DEPLOY_STATE, 
+            ip_data = ip_data,
+            username=USERNAME
+    )
 
 @app.route('/contact')
 def contact():

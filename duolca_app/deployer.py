@@ -23,9 +23,10 @@ class Deployer(object):
         self.resource_group = resource_group
         self.course_name = course_name
         self.credentials = credentials
-        self.client = ResourceManagementClient(self.credentials, self.subscription_id)
         self.public_ip = public_ip
         self.deploy_name = deploy_name
+
+        self.client = ResourceManagementClient(self.credentials, self.subscription_id)
 
 # CHECK WHETHER OR NOT A DEPLOYMENT EXISTS
     def check_deployment(self):
@@ -33,7 +34,15 @@ class Deployer(object):
             self.resource_group,
             self.deploy_name
         ) 
+
+        if deployed == True:
+            deploy_state = self.client.deployments.get(self.resource_group, self.deploy_name)
+            
+            if deploy_state.properties.provisioning_state == 'Failed':
+                deployed = False
+
         return deployed
+    
 
 # DEPLOY THE VIRTUAL MACHINE ACCORDING TO VALUES YOU SET FOR YOURSELF WHEN YOU CALLED THE CLASS
     def deploy(self):
@@ -57,9 +66,17 @@ class Deployer(object):
             self.deploy_name,
             deployment_prop
         )
-
+    
+        # deployment_async_operation.wait(180) # This is a hardcoded timeout time, need to fix eventually
         # result = deployment_async_operation.result()
-        deployment_async_operation.wait()
+        deployState = deployment_async_operation.state()
+
+        # while deployState != 'Succeeded':
+        #     deployment_async_operation.wait(3)
+        #     deployState = deployment_async_operation.state()
+        
+        if deployState == 'Succeeded':
+            result = deployment_async_operation.result()
 
 # COLLECT INFORMATION ABOUT THE DEPLOYMENT 
     def ReturnIP(self):
@@ -76,7 +93,6 @@ class Deployer(object):
             template = json.load(template_file_fd)
 
         parameters = {}
-        # parameters = {k: {'value': v} for k, v in parameters.items()}
 
         deployment_prop = DeploymentProperties(
             mode='Complete',
@@ -90,11 +106,4 @@ class Deployer(object):
             deployment_prop
         )
 
-        # result = deployment_async_operation.result()
         deployment_async_operation.wait()
-
-        # resource_list=[]
-        # for item in client.resource_groups.list_resources(GROUP_NAME):
-        #     resource_list.append(item)
-        # return resource_list
-    
