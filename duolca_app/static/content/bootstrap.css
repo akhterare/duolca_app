@@ -473,12 +473,14 @@ h3,
 h4,
 h5,
 h6,
+p,
 .h1,
 .h2,
 .h3,
 .h4,
 .h5,
-.h6 {
+.h6
+.p {
   font-family: "Segoe UI", Arial, Helvetica, sans-serif;
   font-weight: 500;
   line-height: 1.1;
@@ -5689,6 +5691,7 @@ body.modal-open,
   min-height: 16.428571429px;
   padding: 15px;
   border-bottom: 1px solid #e5e5e5;
+  font-weight: 600;
 }
 
 .modal-header .close {

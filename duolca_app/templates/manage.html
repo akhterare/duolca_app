@@ -1,33 +1,78 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="main-header">
+<!-- <div class="main-header-1">
     <div class="text-center">
         <h1>Your Virtual Lab Information</h1>
         <p class="lead">Here's the information on your virtual lab.</p>
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#ipModal">Your Public IP Address is {{ ip_data }}</button>
+        <button type="button" class="btn btn-primary">Stop vLab</button>
+        <button type="button" class="btn btn-primary">Stop vLab</button>
     </div>
+</div> -->
+
+<div class="text-center">
+        <h1>Your Virtual Lab Information</h1>
+        <p class="lead">Here's the information on your virtual lab.</p>
+        <div class="row content-row">
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#ipModal">Your Public IP Address is {{ ip_data }}</button>
+        </div>
 </div>
 
 <div class="main-grid">
-    <div class="row primary-row">
-        <div class="col-sm-12">
-            <div class="text-center"><p>Your Public IP Address is {{ ip_data }}</p></div>
+    <div class="row button-row text-center">
+        <div class="col-sm-12 col-md-12 col-lg-12">
+            <div class="management-buttons btn-group" role="group" aria-label="Management Buttons">
+            <button type="button" class="btn btn-primary" action="{{ url_for('DeallocateVM') }}">Stop vLab</button>
+            <button type="button" class="btn btn-primary" action="{{ url_for('StartVM') }}">Start vLab</button>
+            <button type="button" class="btn btn-primary" action="{{ url_for('DeleteCourse') }}">Delete Course</button>
+            </div>
         </div>
-    </div>
-
-    <div class="row content-row">
-        <div class="col-sm-3 text-center">Your course is {{ course_name }}</div>
-        <div class="col-sm-3 text-center">Your resource group is {{ resource_group }}</div>
-        <div class="col-sm-3 text-center">Your location is {{ location }}</div>
-        <div class="col-sm-3 text-center">Your deploy state is {{ deploy_state }}</div>
     </div>
 </div>
 
-<h3><b>User Data</h3>
-<p>Your course is {{ course_name }}</p>
-<p>Your resource group is {{ resource_group }}</p>
-<p>Your location is {{ location }}</p>
-<p>Your deploy state is {{ deploy_state }}</p>
-<p>Have your resources been deleted? {{ resources_delete_state }}</p>
+<div class="row">
+    <div class="col-sm-12 col-md-12 col-lg-12 text-center">
+        <h4><b>Course Name</b></h4>
+        <p>Your course is {{ course_name }}</p>
+        
+        <h4><b>Resource Group</b></h4>
+        <p>Lab is running in {{ resource_group }}</p>
+        
+        <h4><b>Location Group</b></h4>
+        <p>Data Centre is located at {{ location }}</p>
+    </div>
+</div>
+    
+    <!-- <div class="row">
+            <div class="col-sm-12 col-md-12 col-lg-12 text-center">
+                <h3><b>Test Data</h3>
+                <p>Your deploy state is {{ deploy_state }}</p>
+                <p>Have your resources been deleted? {{ resources_delete_state }}</p>
+            </div>
+    </div> -->
+
+
+
+    <!-- The modal popup that should appear as a warning -->
+    <div class="modal fade" id="ipModal" tabindex="-1" role="dialog" aria-labelledby="ipModal" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">vLab Public IP Address</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+
+              <div class="modal-body">
+              Copy this public IP address and distribute it to your students so they can access the course.
+              </div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+    </div>
 
 {% endblock %}

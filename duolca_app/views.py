@@ -12,6 +12,7 @@ import json
 import uuid 
 import os.path
 from duolca_app.deployer import Deployer
+from duolca_app.manager import Manager
 from msrestazure.azure_active_directory import AdalAuthentication
 
 from duolca_app import app
@@ -137,6 +138,7 @@ def ManageSubmit():
     global RESOURCE_GROUP
     global LOCATION
     global DEPLOY_STATE
+    global DEPLOYER
 
     # UPON FORM BEING FILLED OUT BY USER: this sends info for deployment
     COURSE_NAME = request.form['course_name']
@@ -145,11 +147,9 @@ def ManageSubmit():
     DEPLOY_NAME = request.form['deploy_name']
 
     my_subscription_id = config.SUBSCRIPTION_ID   # your Azure Subscription Id
-    resource_group = flask.session['resource_group']         # the resource group for deployment
-    course_name = flask.session['course_name']
-    public_ip = '/subscriptions/' + config.SUBSCRIPTION_ID + '/resourceGroups/' + RESOURCE_GROUP + '/providers/Microsoft.Network/publicIPAddresses/' +  course_name + '-duolcatrialPublicIP'
+    public_ip = '/subscriptions/' + config.SUBSCRIPTION_ID + '/resourceGroups/' + RESOURCE_GROUP + '/providers/Microsoft.Network/publicIPAddresses/' +  COURSE_NAME + '-duolcatrialPublicIP'
     
-    DEPLOYER = Deployer(my_subscription_id, resource_group, CREDENTIALS, course_name, public_ip, DEPLOY_NAME)
+    DEPLOYER = Deployer(config.SUBSCRIPTION_ID, RESOURCE_GROUP, CREDENTIALS, COURSE_NAME, public_ip, DEPLOY_NAME)
     DEPLOY_STATE = DEPLOYER.check_deployment()
 
     if DEPLOY_STATE == False:
@@ -175,7 +175,7 @@ def DeployTemplate():
     global RESOURCE_GROUP_EMPTY
 
     if 'access_token' not in flask.session:
-        return flask.redirect(flask.url_for('/'))
+        return flask.redirect('/')
 
     my_subscription_id = config.SUBSCRIPTION_ID   # your Azure Subscription Id
     resource_group = flask.session['resource_group']         # the resource group for deployment
@@ -201,6 +201,8 @@ def DeployTemplate():
             # Update the deploy_state to reflect new deployment
             DEPLOY_STATE = True
             post_deploy_state = True
+        else:
+            return flask.redirect('/')
 
         # Once Duolca has determined whether it's deployed or not, it'll render appropriate screen
         if DEPLOY_STATE == True: 
@@ -239,6 +241,27 @@ def manage_new():
             ip_data = ip_data,
             username=USERNAME
     )
+
+@app.route('/DeallocateVM')
+def DeallocateVM():
+    global MANAGER 
+    MANAGER = Manager(config.SUBSCRIPTION_ID, RESOURCE_GROUP, CREDENTIALS, COURSE_NAME)
+    deallocate_vm = MANAGER.DeallocateVM()
+
+    return flask.redirect('/')
+    
+@app.route('/StartVM')
+def StartVM():
+    global MANAGER 
+
+    MANAGER = Manager(config.SUBSCRIPTION_ID, RESOURCE_GROUP, CREDENTIALS, COURSE_NAME)
+    start_vm = MANAGER.StartVM()
+    return flask.redirect('/')
+
+@app.route('/DeleteCourse')
+def DeleteCourse():
+    Deployer.DeleteResources()
+    return flask.redirect('/')
 
 @app.route('/contact')
 def contact():

@@ -23,11 +23,11 @@ class Manager(object):
 
     def DeallocateVM(self):
         deallocate_async_operation = self.client.virtual_machines.deallocate(self.resource_group, self.vm_name)
-        deallocate_async_operation.wait()
+        # deallocate_async_operation.wait()
 
     def StartVM(self):
         start_async_operation = self.client.virtual_machines.start(self.resource_group, self.vm_name)
-        start_async_operation.wait()
+        # start_async_operation.wait()
     
 
 
