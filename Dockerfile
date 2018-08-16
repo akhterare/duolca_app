@@ -1,7 +1,15 @@
+#####################################################################################################################
+# DUOLCA 1.0.0  
+# DOCKERFILE
+#
+# This Dockerfile is used as a script to build the container that runs the Duolca App
+# It runs the requirements.txt file and sets a specific no_proxy that ensures that the app runs under the Nokia proxy
+#
+# Duolca 1.0.0 \\ August 17th, 2018 \\ Areena Akhter
+#####################################################################################################################
+
 FROM ubuntu:16.04 
 LABEL maintainer="Azure App Service Container Images <appsvc-images@microsoft.com>"
-# ENV http_proxy="http://proxy.lbs.alcatel-lucent.com:8000"
-# ENV https_proxy="https://proxy.lbs.alcatel-lucent.com:8000"
 RUN apt-get update -y
 RUN apt-get install -y python-pip python-dev build-essential
 COPY . /app

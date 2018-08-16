@@ -1,11 +1,12 @@
 ########################################################################################################
+# DUOLCA 1.0.0 
 # VIEWS.PY ROUTING FILE 
 #
 # VIEWS.PY is the main routing file, what the app does in different pages, for the Duolca Web Application 
 # All routes are identified using the @... at the beginning of the view (function) related to it
 # This file controls app authentication, token collection, deployment (using deployer class), and other pages
 #
-# Duolca 1.0.0 \\ August 17th, 2018 \\ Areena Akhter
+# August 17th, 2018 \\ Areena Akhter
 ########################################################################################################
  
 # Import relevant libraries

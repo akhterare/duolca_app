@@ -1,4 +1,15 @@
 ﻿<!DOCTYPE html>
+
+<!-- #####################################################################################################################
+# DUOLCA 1.0.0  
+# Layout.html
+#
+# The BASE Jinja template for the ALL THE PAGES in Duolca - all other templates are rendered ON TOP OF THIS ONE
+# Contains the navigation bar and footer that are present on every page
+#
+# Duolca 1.0.0 \\ August 17th, 2018 \\ Areena Akhter
+##################################################################################################################### -->
+
 <html>
 <head>
     <meta charset="utf-8" />
@@ -9,6 +20,7 @@
     <script src="/static/scripts/modernizr-2.6.2.js"></script>
 </head>
 
+<!-- NAVBAR MAIN -->
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
             <div class="container">
@@ -43,7 +55,7 @@
             </div>
     </div>
     
-
+<!-- FOOTER -->
     <div class="container body-content">
         {% block content %}{% endblock %}
         <footer>
@@ -51,6 +63,7 @@
         </footer>
     </div>
 
+    <!-- SCRIPTS -->
     <script src="/static/scripts/jquery-1.10.2.js"></script>
     <script src="/static/scripts/bootstrap.js"></script>
     <script src="/static/scripts/respond.js"></script>

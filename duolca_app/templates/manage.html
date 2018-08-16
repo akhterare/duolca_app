@@ -1,7 +1,17 @@
+<!-- #####################################################################################################################
+# DUOLCA 1.0.0  
+# Manage.html
+#
+# The Jinja template for the MANAGEMENT page for Duolca
+# Contains the buttons for Start and Stop VM and the Public IP Address (that launches a modal)
+#
+# Duolca 1.0.0 \\ August 17th, 2018 \\ Areena Akhter
+##################################################################################################################### -->
+
 {% extends "layout.html" %}
 
 {% block content %}
-
+<!-- Header with Title and Subtitle -->
 <div class="text-center">
         <h1>Your Virtual Lab Information</h1>
         <p class="lead">Here's the information on your virtual lab.</p>
@@ -10,6 +20,7 @@
         </div>
 </div>
 
+<!-- Button Group containing buttons for start, stop, delete -->
 <div class="main-grid">
     <div class="row button-row text-center">
         <div class="col-sm-12 col-md-12 col-lg-12">
@@ -22,6 +33,7 @@
     </div>
 </div>
 
+<!-- Course information row -->
 <div class="row">
     <div class="col-sm-12 col-md-12 col-lg-12 text-center">
         <h4><b>Course Name</b></h4>
