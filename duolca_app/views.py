@@ -27,7 +27,6 @@ from msrestazure.azure_active_directory import AdalAuthentication
 
 from duolca_app import app
 from duolca_app import config
-from duolca_app.db import get_db
 
 # For deployment of the application, these variables must be set - in production, change the key and turn off debug
 app.debug = True

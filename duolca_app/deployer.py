@@ -1,4 +1,12 @@
-"""A deployer class to deploy a template on Azure"""
+########################################################################################################
+# DUOLCA 1.0.0 
+# DEPLOYER CLASS
+#
+# DEPLOYER is the main deployer class, meaning it handles functions related to deployment of the template, checking if it exists, etc. 
+#
+# August 17th, 2018 \\ Areena Akhter
+########################################################################################################
+
 import os.path
 from duolca_app import config
 import json
@@ -46,27 +54,32 @@ class Deployer(object):
 
 # DEPLOY THE VIRTUAL MACHINE ACCORDING TO VALUES YOU SET FOR YOURSELF WHEN YOU CALLED THE CLASS
     def deploy(self):
+        # LOCATE TEMPLATE: all templates are stored with the application, and the specific one to deploy is identified by 'course_name'
         template_path = os.path.join(os.path.dirname(__file__), 'templates', self.course_name + '.json')
         with open(template_path, 'r') as template_file_fd:
             template = json.load(template_file_fd)
 
+        # IDENTIFY PARAMETERS: these are unique to a specific template, so we'd have to play around with this when we expand
         parameters = {
             'vmName': self.course_name,
         }
         parameters = {k: {'value': v} for k, v in parameters.items()}
 
+        # SET PROPERTIES FOR DEPLOYMENT
         deployment_prop = DeploymentProperties(
             mode='Complete',
             template=template,
             parameters=parameters
         )
 
+        # RUN DEPLOYMENT 
         deployment_async_operation = self.client.deployments.create_or_update(
             self.resource_group,
             self.deploy_name,
             deployment_prop
         )
     
+        # PLAYING AROUND WITH FIXES TO REDIRECT ISSUE: Aug 17th, 2018
         # deployment_async_operation.wait(180) # This is a hardcoded timeout time, need to fix eventually
         # result = deployment_async_operation.result()
         deployState = deployment_async_operation.state()

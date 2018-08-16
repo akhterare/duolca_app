@@ -10,25 +10,31 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<!-- Header with Title and Subtitle -->
 <div class="text-center">
     <h1>Duolca App Documentation</h3>
     <p>Duolca is NokiaEDU's portal to allow instructors to launch cloud VMs in Microsoft Azure. Find resources and documentation to help you run and build Duolca here.</p>  
+</div>
+
+
+<div class="row text-center">
+  <div class="col-md-4 col-lg-4 col-sm-4">
+    <h3>What is Duolca?</h4>
+    <p>Designed for instructors in NokiaEDU, Duolca is a portal to the Microsoft Azure Cloud Services Platform. It allows instructors to easily deploy their VMs.</p>
   </div>
 
-<div class="container">
-    <div class="row">
-
-      <div class="col-md-4">
-        <h4>What is Duolca?</h4>
-        <p>Designed for instructors in NokiaEDU, Duolca is a portal to the Microsoft Azure Cloud Services Platform. It allows instructors to easily deploy their VMs.</p>
-        <h4>Resources</h3>
-      </div>
-
-      <div class="col-md-8">
-        <h4>For Instructors</h4>
-        
-      </div>
-    </div>
+  <div class="col-md-8 col-lg-8 col-sm-4">
+      <h3>How Do I Use It?</h3>
+      <h5>Deploy + Manage a Course</h5>
+      <ol>
+          <li>Check the email sent you by NokiaEDU: contains COURSE NAME, DEPLOYMENT NAME, RESOURCE GROUP, and LOCATION NAME</li>
+          <li>Input that information in the form on the home page, and click Deploy vLab</li>
+          <li>Wait for about 10 minutes, before returning to the app and refreshing the index page: </li><a href="duolcaapp.azurewebsites.net">here</a>
+          <li>Reenter the same information and click the Manage VLab button to view the Public IP Address!</li>
+      </ol>
   </div>
-  
+</div>
+
+
+
 {% endblock %}
