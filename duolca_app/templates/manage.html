@@ -1,15 +1,6 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<!-- <div class="main-header-1">
-    <div class="text-center">
-        <h1>Your Virtual Lab Information</h1>
-        <p class="lead">Here's the information on your virtual lab.</p>
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#ipModal">Your Public IP Address is {{ ip_data }}</button>
-        <button type="button" class="btn btn-primary">Stop vLab</button>
-        <button type="button" class="btn btn-primary">Stop vLab</button>
-    </div>
-</div> -->
 
 <div class="text-center">
         <h1>Your Virtual Lab Information</h1>
@@ -43,16 +34,6 @@
         <p>Data Centre is located at {{ location }}</p>
     </div>
 </div>
-    
-    <!-- <div class="row">
-            <div class="col-sm-12 col-md-12 col-lg-12 text-center">
-                <h3><b>Test Data</h3>
-                <p>Your deploy state is {{ deploy_state }}</p>
-                <p>Have your resources been deleted? {{ resources_delete_state }}</p>
-            </div>
-    </div> -->
-
-
 
     <!-- The modal popup that should appear as a warning -->
     <div class="modal fade" id="ipModal" tabindex="-1" role="dialog" aria-labelledby="ipModal" aria-hidden="true">

@@ -1,7 +1,14 @@
-"""
-Routes and views for the flask application.
-"""
-
+########################################################################################################
+# VIEWS.PY ROUTING FILE 
+#
+# VIEWS.PY is the main routing file, what the app does in different pages, for the Duolca Web Application 
+# All routes are identified using the @... at the beginning of the view (function) related to it
+# This file controls app authentication, token collection, deployment (using deployer class), and other pages
+#
+# Duolca 1.0.0 \\ August 17th, 2018 \\ Areena Akhter
+########################################################################################################
+ 
+# Import relevant libraries
 from datetime import datetime
 from flask import render_template, Flask, Response, request, session, redirect
 import flask 
@@ -11,6 +18,8 @@ import os
 import json 
 import uuid 
 import os.path
+
+# Import classes for deployment and management of Azure resources
 from duolca_app.deployer import Deployer
 from duolca_app.manager import Manager
 from msrestazure.azure_active_directory import AdalAuthentication
@@ -19,20 +28,20 @@ from duolca_app import app
 from duolca_app import config
 from duolca_app.db import get_db
 
+# For deployment of the application, these variables must be set - in production, change the key and turn off debug
 app.debug = True
 app.secret_key = 'development'
 
+# Global variables will be inputted into the login function
 PORT = 5000  # A flask app by default runs on PORT 5000
 AUTHORITY_URL = config.AUTHORITY_HOST_URL + '/' + config.TENANT
 REDIRECT_URI = 'https://duolcaapp.azurewebsites.net/getAToken'
 TEMPLATE_AUTHZ_URL = ('https://login.microsoftonline.com/{}/oauth2/authorize?' +
                       'response_type=code&client_id={}&redirect_uri={}&' +
                       'state={}&resource={}')
-# TOKEN = ""
-# AUTH_TOKEN = ""
-# CREDENTIALS = ""
 USERNAME = ""
 
+# INDEX VIEW: routes user to the login URL 
 @app.route('/')
 def main():
     login_url = 'https://duolcaapp.azurewebsites.net/login'
@@ -40,10 +49,13 @@ def main():
     resp.headers['location'] = login_url
     return resp
 
+# LOGIN VIEW: routes user to the external Azure Active Directory login for Nokia
 @app.route("/login")
 def login():
     auth_state = str(uuid.uuid4())
     flask.session['state'] = auth_state
+
+    # Builds the authorization URL that the user is redirected to 
     authorization_url = TEMPLATE_AUTHZ_URL.format(
         config.TENANT,
         config.CLIENT_ID,
@@ -54,8 +66,11 @@ def login():
     resp.headers['location'] = authorization_url
     return resp
 
+# GETATOKEN VIEW: this is the callback (redirect URI) for the AD login, will run after login
 @app.route("/getAToken", methods=['GET', 'POST'])
 def auth():
+
+    # Intialize the user-specific variables that will be used during run-time
     global CREDENTIALS
     global USERNAME
     global GRAPH_DATA
@@ -75,13 +90,14 @@ def auth():
     flask.session['auth_access_token'] = auth_token['accessToken']
     AUTH_TOKEN = auth_token['accessToken']
 
-    # GET THE AZURE RESOURCE MANAGEMENT ACCESS TOKEN
+    # GET THE AZURE RESOURCE MANAGEMENT ACCESS TOKEN (USED TO MAKE REST CALLS MANUALLY)
     resource = 'https://management.azure.com'
     context = adal.AuthenticationContext(AUTHORITY_URL)
     manage_token = context.acquire_token_with_authorization_code(code, REDIRECT_URI, resource, client_id, client_secret)
     flask.session['access_token'] = manage_token['accessToken']
     TOKEN = manage_token['accessToken']
 
+    # GET THE AZURE RESOURCE MANAGEMENT CREDENTIALS (USED WITH SDK FOR PYTHON)
     CREDENTIALS = AdalAuthentication(
         context.acquire_token_with_client_credentials,
         config.MANAGE_RESOURCE,
@@ -89,9 +105,9 @@ def auth():
         config.CLIENT_SECRET
     )
 
-    # MAKE A CALL TO THE GRAPH API TO GET USER INFO WHICH WILL ALWAYS BE USED!
-    endpoint = config.AUTH_RESOURCE + '/' + config.API_VERSION + '/me/'
-    http_headers = {'Authorization': flask.session.get('auth_access_token'),
+    # MAKE A MANUAL REST CALL CALL TO THE GRAPH API TO GET USER INFO WHICH WILL ALWAYS BE USED!
+    endpoint = config.AUTH_RESOURCE + '/' + config.API_VERSION + '/me/' # The specific endpoint for the 'Read User Info' rest call, look in Microsoft documentation for this
+    http_headers = {'Authorization': flask.session.get('auth_access_token'), # Headers to be injected, include the authorization token
                     'User-Agent': 'duolca_app',
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
@@ -102,7 +118,8 @@ def auth():
     USERNAME = GRAPH_DATA['givenName']
 
     return flask.redirect('/home')
-    
+
+# HOME VIEW: renders the home template, which contains a form with deployment or management options for the user
 @app.route('/home', methods=('GET', 'POST'))
 def home():
     """Renders the home page."""
@@ -113,6 +130,7 @@ def home():
         username=USERNAME
     ) 
 
+# DEPLOY SUBMIT VIEW: When the user submits the form by clicking on the 'Deploy vLab' button, they're redirected here
 @app.route('/DeploySubmit', methods=('GET', 'POST'))
 def DeploySubmit():
     global COURSE_NAME
@@ -126,11 +144,13 @@ def DeploySubmit():
     LOCATION = request.form['location']
     DEPLOY_NAME = request.form['deploy_name']
 
+    # These variables are stored in the session (THEY'RE NOT ACTUALLY USED IN MY CODE, BUT AVAILABLE)
     flask.session['resource_group'] = RESOURCE_GROUP
     flask.session['course_name'] = COURSE_NAME
 
     return flask.redirect('/DeployTemplate')
 
+# MANAGE SUBMIT VIEW: When the user submits the form by clicking on the 'Manage vLab' button, they're redirected here
 @app.route('/ManageSubmit', methods=('GET', 'POST'))
 def ManageSubmit():
     global COURSE_NAME
@@ -149,14 +169,16 @@ def ManageSubmit():
     my_subscription_id = config.SUBSCRIPTION_ID   # your Azure Subscription Id
     public_ip = '/subscriptions/' + config.SUBSCRIPTION_ID + '/resourceGroups/' + RESOURCE_GROUP + '/providers/Microsoft.Network/publicIPAddresses/' +  COURSE_NAME + '-duolcatrialPublicIP'
     
+    # Initializing the Deployer class with variables entered by user
     DEPLOYER = Deployer(config.SUBSCRIPTION_ID, RESOURCE_GROUP, CREDENTIALS, COURSE_NAME, public_ip, DEPLOY_NAME)
     DEPLOY_STATE = DEPLOYER.check_deployment()
 
+    # Checking if the deployment exists (if NOT, won't let user into Management Screen)
     if DEPLOY_STATE == False:
         return flask.redirect('/')
     else:
-        ip_data = DEPLOYER.ReturnIP()
-
+        ip_data = DEPLOYER.ReturnIP() # Attains the IP Address of the machine
+        
         return render_template(
             'manage.html', 
             deploy_name=DEPLOY_NAME,
@@ -168,6 +190,7 @@ def ManageSubmit():
             username=USERNAME
         )
 
+# DEPLOY TEMPLATE VIEW: Redirects from DeploySubmit, deploys the VM from template [using DEPLOY_NAME] 
 @app.route('/DeployTemplate')
 def DeployTemplate():
     global DEPLOYER
@@ -211,7 +234,8 @@ def DeployTemplate():
                 return flask.redirect('/manage')
             else:
                 return flask.redirect('/')
-        
+
+# MANAGE VIEW: renders the management page after retrieving the management data (Public IP)
 @app.route('/manage', methods=('GET', 'POST'))
 def manage():
     ip_data = DEPLOYER.ReturnIP()
@@ -227,42 +251,54 @@ def manage():
             username=USERNAME
         )
 
-@app.route('/manage_new')
-def manage_new():
-    ip_data = DEPLOYER.ReturnIP()
+# # MANAGE_NEW VIEW: currently not in use, was an old redirect function
+# @app.route('/manage_new')
+# def manage_new():
+#     ip_data = DEPLOYER.ReturnIP()
 
-    return render_template(
-            'manage.html', 
-            deploy_name=DEPLOYER.deploy_name,
-            course_name=DEPLOYER.course_name, 
-            resource_group=DEPLOYER.resource_group,
-            location='East US',
-            deploy_state=DEPLOY_STATE, 
-            ip_data = ip_data,
-            username=USERNAME
-    )
+#     return render_template(
+#             'manage.html', 
+#             deploy_name=DEPLOYER.deploy_name,
+#             course_name=DEPLOYER.course_name, 
+#             resource_group=DEPLOYER.resource_group,
+#             location='East US',
+#             deploy_state=DEPLOY_STATE, 
+#             ip_data = ip_data,
+#             username=USERNAME
+#     )
 
+# DEALLOCATE VM VIEW: upon clicking on the 'Stop vLab' button, runs the Manager.DeallocateVM() function
 @app.route('/DeallocateVM')
 def DeallocateVM():
+
+    # Initialize the Manager class 
     global MANAGER 
     MANAGER = Manager(config.SUBSCRIPTION_ID, RESOURCE_GROUP, CREDENTIALS, COURSE_NAME)
+
+    # Run the deallocation function
     deallocate_vm = MANAGER.DeallocateVM()
 
     return flask.redirect('/')
-    
+
+# START VM VIEW: upon clicking on the 'Start vLab' button, runs the Manager.StartVM() function
 @app.route('/StartVM')
 def StartVM():
+    # Initialize the Manager class 
     global MANAGER 
-
     MANAGER = Manager(config.SUBSCRIPTION_ID, RESOURCE_GROUP, CREDENTIALS, COURSE_NAME)
+
+    # Run the start VM function 
     start_vm = MANAGER.StartVM()
+
     return flask.redirect('/')
 
+# DELETE COURSE VIEW: upon clicking on the 'Delete Course' button, runs the Manager.DeleteCourse() function
 @app.route('/DeleteCourse')
 def DeleteCourse():
     Deployer.DeleteResources()
     return flask.redirect('/')
 
+# CONTACT VIEW: renders the contact page
 @app.route('/contact')
 def contact():
     check_username(USERNAME)
@@ -271,12 +307,12 @@ def contact():
     return render_template(
         'contact.html',
         title='Contact Us',
-        #year=datetime.now().year,
         year=datetime.now().year,
         message='Your contact page.',
         username=USERNAME
     )
 
+# ABOUT VIEW: renders the documentation page 
 @app.route('/about')
 def about():
     check_username(USERNAME)
@@ -290,6 +326,7 @@ def about():
         username=USERNAME
     )
 
+# PROFILE VIEW: renders the user's profile page 
 @app.route('/profile')
 def profile():
     check_username(USERNAME)
@@ -303,6 +340,7 @@ def profile():
         graph_data=GRAPH_DATA
     )
 
+# LOGOUT VIEW: renders the logout page 
 @app.route('/logout')
 def logout():
     return 'Works'
