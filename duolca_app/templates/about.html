@@ -13,25 +13,44 @@
 <!-- Header with Title and Subtitle -->
 <div class="text-center">
     <h1>Duolca App Documentation</h3>
-    <p>Duolca is NokiaEDU's portal to allow instructors to launch cloud VMs in Microsoft Azure. Find resources and documentation to help you run and build Duolca here.</p>  
+    <p><lead>Duolca is NokiaEDU's portal to allow instructors to launch cloud VMs in Microsoft Azure. Find resources and documentation to help you run and build Duolca here.</p>  
 </div>
 
 
-<div class="row text-center">
-  <div class="col-md-4 col-lg-4 col-sm-4">
-    <h3>What is Duolca?</h4>
-    <p>Designed for instructors in NokiaEDU, Duolca is a portal to the Microsoft Azure Cloud Services Platform. It allows instructors to easily deploy their VMs.</p>
-  </div>
-
-  <div class="col-md-8 col-lg-8 col-sm-4">
+<div class="row">
+  <div class="col-md-12 col-lg-12 col-sm-12">
+    <h3>What is Duolca?</h4>    
+    <p>Designed for instructors in NokiaEDU, Duolca is a portal to the Microsoft Azure Cloud Services Platform. It allows instructors to easily deploy their VMs.</p>   
+ 
+    <div "text-center">
       <h3>How Do I Use It?</h3>
-      <h5>Deploy + Manage a Course</h5>
-      <ol>
-          <li>Check the email sent you by NokiaEDU: contains COURSE NAME, DEPLOYMENT NAME, RESOURCE GROUP, and LOCATION NAME</li>
-          <li>Input that information in the form on the home page, and click Deploy vLab</li>
-          <li>Wait for about 10 minutes, before returning to the app and refreshing the index page: </li><a href="duolcaapp.azurewebsites.net">here</a>
-          <li>Reenter the same information and click the Manage VLab button to view the Public IP Address!</li>
-      </ol>
+      <h4>Deploy + Manage a Course</h4>
+    </div>
+
+    <ol>
+        <li>Check the email sent you by NokiaEDU: contains COURSE NAME, DEPLOYMENT NAME, RESOURCE GROUP, and LOCATION NAME</li>
+        <li>Input that information in the form on the home page, and click Deploy vLab</li>
+        <li>Wait for about 10 minutes, before returning to the app and refreshing the index page: </li><a href="{{ url_for('main') }}">here</a>
+        <li>Reenter the same information and click the Manage VLab button to view the Public IP Address!</li>
+    </ol>
+
+    <div "text-center">
+        <h3>Troubleshooting</h3>
+    </div>    
+            <h4>Checking if your course has deployed</h4>
+            <p>Typically, if you enter the correct values into the form and click Manage vLab, it will only redirect you if your deployment has completed. Otherwise, you’ll be redirected to the home screen.  As of 1.0.0, you’ll have to access the Azure Management Portal (portal.azure.com) if you have permissions to view resources [you’ll go to Resource Groups > your resource group name > Deployment] to 100% confirm if your deployment was successful.
+            </p>
+        
+            <h4>Error: ‘CREDENTIALS’ variable is not defined</h4>
+            <p>>If you get this error, it’s likely because the application has not authenticated you as a user through the index page. Reload the index (duolcaapp.azurewebsites.net) and try again.
+            </p>
+            <h4>Error: After I click ‘Deploy vLab’, my page doesn’t redirect anywhere.</h4>
+            <p>This is a known issue, and once ten minutes have passed, you should just refresh the index page and click on Manage vLab after re-entering your course info. 
+            </p>
+            <h4>Error: Buttons (Start vLab, Stop vLab) on the Management Screen don’t work.</h4>
+            <p>This may be an error on the coding side, please see NokiaEDU for support. 
+            </p>
+        
   </div>
 </div>
 

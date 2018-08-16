@@ -126,3 +126,8 @@ body {
 .management-buttons {
     padding: 15px;
 }
+
+.sidebar-row {
+    background-color: #1d539d;
+    color: white;
+}
